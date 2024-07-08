@@ -2,6 +2,7 @@ import { Container, TableBody, Typography } from "@mui/material";
 import React from "react";
 import {
   Box,
+  Button,
   Paper,
   Table,
   TableCell,
@@ -9,62 +10,63 @@ import {
   TableRow,
 } from "../FivePluginApi";
 
-const Summary = ({ ivr, practitioner }) => {
+const Summary = ({ ivr, practitioner,  handleNext }) => {
   console.log("IVR from  order summary", ivr);
   return (
     <Container>
       {ivr !== undefined && (
         <Box>
-          <Typography variant="h5">
-            PATIENT BENEFIT VERIFICATION SUMMARY
+          <Typography variant="h5" textAlign='center' textTransform='capitalize' style={{fontWeight:'bold'}}>
+            Patient Benefit Verification Summary
           </Typography>
-          <TableContainer component={Paper}>
+          <TableContainer component={Paper} style={{marginTop: '40px'}}>
             <Table>
               <TableBody style={{ border: "1px solid black" }}>
                 <TableRow>
                   <TableCell component="th" scope="row">
-                    ACCOUNT:
+                  <strong> ACCOUNT:</strong>
                   </TableCell>
                   <TableCell> {ivr?.Account} </TableCell>
                   <TableCell component="th" scope="row">
-                    DATE:
+                  <strong> DATE:</strong>
                   </TableCell>
                   <TableCell>{ivr?.Date}</TableCell>
                 </TableRow>
                 <TableRow>
                   <TableCell component="th" scope="row">
-                    ATTENTION:
+                  <strong>ATTENTION:</strong>
                   </TableCell>
                   <TableCell>{ivr?.Contact}</TableCell>
                   <TableCell component="th" scope="row">
-                    FAX:
+                  <strong> FAX:</strong>
                   </TableCell>
                   <TableCell></TableCell>
                 </TableRow>
                 <TableRow>
                   <TableCell component="th" scope="row">
-                    PHYSICIAN:
+                  <strong>PHYSICIAN:</strong>
                   </TableCell>
                   <TableCell> {practitioner.NameFull} </TableCell>
                   <TableCell component="th" scope="row">
-                    FROM:
+                  <strong> FROM:</strong>
                   </TableCell>
                   <TableCell></TableCell>
                 </TableRow>
                 <TableRow>
+               
                   <TableCell component="th" scope="row">
-                    PATIENT NAME:
+                  <strong>PATIENT NAME:</strong>
                   </TableCell>
                   <TableCell> {ivr?.Patient} </TableCell>
                   <TableCell></TableCell>
                 </TableRow>
                 <TableRow>
                   <TableCell component="th" scope="row">
-                    CASE ID:
+                  <strong>CASE ID:</strong>
                   </TableCell>
                   <TableCell> {ivr?.IDShort} </TableCell>
                   <TableCell component="th" scope="row">
-                    DOB:
+                  <strong> DOB:</strong>
                   </TableCell>
                   <TableCell>{ivr?.Date}</TableCell>
                 </TableRow>
@@ -76,9 +78,9 @@ const Summary = ({ ivr, practitioner }) => {
               <TableBody style={{ border: "1px solid black" }}>
                 <TableRow>
                   <TableCell component="th" scope="row">
-                    PRIMARY INSURANCE:
+                  <strong> PRIMARY INSURANCE:</strong>
                   </TableCell>
-                  <TableCell>123456</TableCell>
+                  <TableCell>-</TableCell>
                 </TableRow>
               </TableBody>
             </Table>
@@ -104,7 +106,7 @@ const Summary = ({ ivr, practitioner }) => {
                     <TableCell>Deductible Met</TableCell>
                     <TableCell>{ivr?.BenerfitOutOfPocketMet1}</TableCell>
                 </TableRow>
-                <TableRow style={{borderTop: '3px solid black', marginTop: '20px', padding: 10}}>
+                <TableRow style={{borderTop: '3px solid black', marginTop: '20px', padding: 20}}>
                     <TableCell scope='row' component='th'>
                     NOTES
                     </TableCell>
@@ -119,9 +121,9 @@ const Summary = ({ ivr, practitioner }) => {
               <TableBody style={{ border: "1px solid black" }}>
                 <TableRow>
                   <TableCell component="th" scope="row">
-                    Secondary INSURANCE:
+                  <strong> Secondary INSURANCE:</strong>
                   </TableCell>
-                  <TableCell>78910</TableCell>
+                  <TableCell>-</TableCell>
                 </TableRow>
               </TableBody>
             </Table>
@@ -146,7 +148,7 @@ const Summary = ({ ivr, practitioner }) => {
                     <TableCell>Deductible Met</TableCell>
                     <TableCell>{ivr?.BenerfitOutOfPocketMet2}</TableCell>
                 </TableRow>
-                <TableRow style={{borderTop: '3px solid black'}}>
+                <TableRow style={{borderTop: '3px solid black', padding: 20}}>
                     <TableCell scope='row' component='th'>
                     NOTES
                     </TableCell>
@@ -156,7 +158,17 @@ const Summary = ({ ivr, practitioner }) => {
                 </TableRow>
             </TableBody>
           </Table>
-          
+          <Typography variant="h6" textAlign='center' textTransform='capitalize' mt={10}>
+            Overall Summary And Notes
+          </Typography>
+          <Typography variant="body1" style={{ whiteSpace: 'pre-line', padding: '16px', border: '1px solid #ccc', borderRadius: '4px', minHeight: '300px' }}>
+            {ivr?.Reason}
+          </Typography>
+          <Box display='flex' justifyContent='center' width="100%">
+          <Button onClick={handleNext} style={{width: '50vw',  backgroundColor: '#1d343d', color:'white'}}>
+            Confirm
+          </Button>
+          </Box>
         </Box>
       )}
     </Container>

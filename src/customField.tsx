@@ -40,7 +40,7 @@ const CustomField = (props: CustomFieldProps) => {
     { product: "", price: 0, qty: 1, discount: 0, amount: 0 },
   ]);
 
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(1);
   const [selectedAddress, setSelectedAddress] = useState("");
 
   const discountPercentages = {
@@ -156,7 +156,7 @@ const CustomField = (props: CustomFieldProps) => {
   };
 
   const handleNext = () => {
-    setPage(++page);
+    setPage(--page);
   };
 
   const getTotalAmount = () => {
@@ -461,7 +461,7 @@ const CustomField = (props: CustomFieldProps) => {
           <DialogContent
             style={{ maxWidth: "100%", overflowX: "hidden", padding: "10px" }}
           >
-            <Summary ivr={data?.ivr}  practitioner={data?.practitioner}/>
+            <Summary ivr={data?.ivr}  practitioner={data?.practitioner} handleNext={handleNext}/>
           </DialogContent>
         )}
       </Dialog>
