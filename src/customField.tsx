@@ -270,12 +270,6 @@ const CustomField = (props: CustomFieldProps) => {
               justifyContent="space-between"
               mb={2}
               padding="10px 0"
-            ></Box>
-            <Box
-              display="flex"
-              justifyContent="space-between"
-              mb={2}
-              padding="10px 0"
               flexDirection="column"
             >
               <Box display="flex" flexDirection="row">
@@ -467,7 +461,7 @@ const CustomField = (props: CustomFieldProps) => {
           <DialogContent
             style={{ maxWidth: "100%", overflowX: "hidden", padding: "10px" }}
           >
-            <Summary />
+            <Summary ivr={data?.ivr}  practitioner={data?.practitioner}/>
           </DialogContent>
         )}
       </Dialog>
