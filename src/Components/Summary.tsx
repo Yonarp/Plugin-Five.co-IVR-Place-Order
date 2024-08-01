@@ -10,7 +10,7 @@ import {
   TableRow,
 } from "../FivePluginApi";
 
-const Summary = ({ ivr, practitioner,  handleNext }) => {
+const Summary = ({ ivr, practitioner,  handleNext, handleDialogClose }) => {
   console.log("IVR from  order summary", ivr);
   return (
     <Container>
@@ -121,7 +121,7 @@ const Summary = ({ ivr, practitioner,  handleNext }) => {
               <TableBody style={{ border: "1px solid black" }}>
                 <TableRow>
                   <TableCell component="th" scope="row">
-                  <strong> Secondary INSURANCE:</strong>
+                  <strong> SECONDARY INSURANCE:</strong>
                   </TableCell>
                   <TableCell>-</TableCell>
                 </TableRow>
@@ -165,7 +165,10 @@ const Summary = ({ ivr, practitioner,  handleNext }) => {
             {ivr?.Reason}
           </Typography>
           <Box display='flex' justifyContent='center' width="100%">
-          <Button onClick={handleNext} style={{width: '50vw',  backgroundColor: '#1d343d', color:'white'}}>
+          <Button onClick={handleDialogClose} style={{width: '15vw',  backgroundColor: '#780000', color:'white',  marginRight: '10px'}}>
+            Cancel
+          </Button>
+          <Button onClick={handleNext} style={{width: '15vw',  backgroundColor: '#1d343d', color:'white', marginLeft: '10px'}}>
             Confirm
           </Button>
           </Box>

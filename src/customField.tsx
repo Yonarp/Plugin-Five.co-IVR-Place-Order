@@ -33,6 +33,7 @@ const CustomField = (props: CustomFieldProps) => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [comment, setComment] = useState("")
   //@ts-ignore
   const [productList, setProductList] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
@@ -42,6 +43,8 @@ const CustomField = (props: CustomFieldProps) => {
 
   const [page, setPage] = useState(1);
   const [selectedAddress, setSelectedAddress] = useState("");
+  const [addressName, setAddressName] = useState(null);
+  const [fullAddress, setFullAddress] = useState(null) // --> added as per Jonathans request
 
   const discountPercentages = {
     Impax: 0.2,
@@ -56,12 +59,14 @@ const CustomField = (props: CustomFieldProps) => {
       USR: data.practitioner.___USR,
       IVR: data.ivr.___IVR,
       ADD: selectedAddress,
+      AddressName: addressName,
       amount: totalAmount,
       products: orderProducts,
+      comment: comment,
     };
 
     console.log("Printing Orders", order);
-
+    
     await five.executeFunction(
       "pushOrder",
       //@ts-ignore
@@ -96,6 +101,8 @@ const CustomField = (props: CustomFieldProps) => {
             (addr) => addr._isPrimary === 1
           );
           setSelectedAddress(primaryAddress?.___ADD || "");
+          setAddressName(primaryAddress?.AddressName);
+          setFullAddress(primaryAddress)
           setLoading(false);
         }
       );
@@ -147,26 +154,36 @@ const CustomField = (props: CustomFieldProps) => {
   };
 
   const handleAddressChange = (event) => {
-    setSelectedAddress(event.target.value);
+    const address = JSON.parse(event.target.value);
+    console.log("Logging address",address)
+    setSelectedAddress(address.ADD);
+    setAddressName(address.Name);
+    setFullAddress(address.address)
   };
 
   const handleDelete = (index) => {
     const newOrderProducts = orderProducts.filter((_, i) => i !== index);
     setOrderProducts(newOrderProducts);
   };
-
+  
   const handleNext = () => {
     setPage(--page);
   };
-
+  
   const getTotalAmount = () => {
     return orderProducts.reduce((total, product) => total + product.amount, 0);
   };
-
+  
+  const handleComment = (event) => {
+    setComment(event.target.value)
+  }
   useEffect(() => {
     setTotalAmount(getTotalAmount());
   }, [orderProducts]);
-
+  
+  console.log("Printing Comment", comment);
+  
+  
   if (loading) {
     return (
       <Container
@@ -215,113 +232,127 @@ const CustomField = (props: CustomFieldProps) => {
           <DialogContent
             style={{ maxWidth: "100%", overflowX: "hidden", padding: "10px" }}
           >
-            <Box
-              display="flex"
-              justifyContent="space-between"
-              mb={2}
-              padding="10px 0"
+            <Table>
+              <TableBody>
+                <TableRow>
+                  <TableCell style={{ borderBottom: "none" }}>
+                    <Typography variant="body1">
+                      Products:{" "}
+                      <strong>
+                        {data?.product?.Brand + "-" + data?.product?.QCode}
+                      </strong>
+                    </Typography>
+                  </TableCell>
+                  <TableCell style={{ borderBottom: "none" }}>
+                    <Typography variant="body1">
+                      Wound Size (CM²): <strong>{data?.ivr?.WoundSize}</strong>
+                    </Typography>
+                  </TableCell>
+                  <TableCell style={{ borderBottom: "none" }}>
+                    <Typography variant="body1">
+                      Wound Type: <strong>{data?.ivr?.WoundType}</strong>
+                    </Typography>
+                  </TableCell>
+                  <TableCell style={{ borderBottom: "none" }}>
+                    <Typography variant="body1">
+                      Account: <strong>{data?.ivr?.Account}</strong>
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell style={{ borderBottom: "none" }}>
+                    <Typography variant="body1">
+                      Approval Date: <strong>{data?.ivr?.ApprovalDate}</strong>
+                    </Typography>
+                  </TableCell>
+                  <TableCell style={{ borderBottom: "none" }}>
+                    <Typography variant="body1">
+                      Date Of Service: <strong>{data?.ivr?.Date}</strong>
+                    </Typography>
+                  </TableCell>
+                  <TableCell style={{ borderBottom: "none" }}>
+                    <Typography variant="body1">
+                      Place Of Service:{" "}
+                      <strong>{data?.ivr?.PlaceofService}</strong>
+                    </Typography>
+                  </TableCell>
+                  <TableCell style={{ borderBottom: "none" }}>
+                    <Typography variant="body1">
+                      MAC: <strong>{data?.account?.MacValue}</strong>
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+            <Table
+              style={{ width: "100%", marginBottom: "16px", padding: "10px 0" }}
             >
-              <Box
-                display="flex"
-                flexDirection="row"
-                justifyContent="center"
-                alignItems="center"
-              >
-                <Typography variant="body1" style={{}}>
-                  Products:{" "}
-                </Typography>
-                <Typography variant="body1" style={{}}>
-                  <strong>
-                    &nbsp;
-                    {"    " + data?.product?.Brand + "-" + data?.product?.QCode}
-                  </strong>
-                </Typography>
-              </Box>
-              <Box
-                display="flex"
-                flexDirection="row"
-                justifyContent="center"
-                alignItems="center"
-              >
-                <Typography variant="body1" style={{ textAlign: "center" }}>
-                  Wound Size (CM²):{" "}
-                </Typography>
-                <Typography variant="body1" style={{ textAlign: "center" }}>
-                  <strong>&nbsp;{data?.ivr?.WoundSize}</strong>
-                </Typography>
-              </Box>
-
-              <Box
-                display="flex"
-                flexDirection="row"
-                justifyContent="center"
-                alignItems="center"
-              >
-                <Typography variant="body1" style={{ textAlign: "center" }}>
-                  Wound Type:
-                </Typography>
-                <Typography variant="body1" style={{ textAlign: "center" }}>
-                  <strong>&nbsp;{data?.ivr?.WoundType}</strong>
-                </Typography>
-              </Box>
-            </Box>
-            <Box
-              display="flex"
-              justifyContent="space-between"
-              mb={2}
-              padding="10px 0"
-              flexDirection="column"
-            >
-              <Box display="flex" flexDirection="row">
-                <Typography variant="subtitle1" style={{ width: "30%" }}>
-                  Shipping Address
-                </Typography>
-                <Select
-                  value={selectedAddress}
-                  onChange={handleAddressChange}
-                  displayEmpty
-                  fullWidth
-                  style={{ width: "30%", border: "none", outline: "none" }}
-                  variant="standard"
-                  disableUnderline
-                >
-                  {data?.address.map((address) => (
-                    <MenuItem key={address.___ADD} value={address.___ADD}>
-                      {address.AddressName}
+              <TableBody>
+                <TableRow>
+                  <TableCell
+                    align="left"
+                    style={{
+                      width: "50%",
+                      borderBottom: "none",
+                      verticalAlign: "top",
+                    }}
+                  >
+                    <Typography variant="subtitle1" style={{ width: "40%" }}>
+                      Shipping Address:
+                    </Typography>
+                    <Select
+                      value={JSON.stringify({
+                        address: fullAddress,
+                        ADD: selectedAddress,
+                        Name: addressName,
+                      })}
+                      onChange={handleAddressChange}
+                      displayEmpty
+                      fullWidth
+                      style={{ width: "60%", border: "none", outline: "none" }}
+                      variant="standard"
+                      disableUnderline
+                    >
+                      {data?.address.map((address) => (
+                        <MenuItem
+                          key={address.___ADD}
+                          value={JSON.stringify({
+                            address: address,
+                            ADD: address.___ADD,
+                            Name: address.AddressName,
+                          })}
+                        >
+                          {address.AddressName}
+                          <br />
+                          {address.AddressStreet + " " + address.AddressCity}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </TableCell>
+                  <TableCell
+                    align="right"
+                    style={{
+                      width: "50%",
+                      borderBottom: "none",
+                      verticalAlign: "top",
+                    }}
+                  >
+                    <Typography variant="body1">Address: &nbsp;</Typography>
+                    <Typography variant="body2" fullWidth>
+                      Legacy Medical Consultants
                       <br />
-                      {address.AddressStreet + " " + address.AddressCity}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </Box>
-              <Box display="flex" flexDirection="row">
-                <Typography variant="body1" style={{ width: "30%" }}>
-                  MAC
-                </Typography>
-                <Typography variant="body1" style={{ width: "30%" }}>
-                  <strong>{data?.account?.MacValue}</strong>
-                </Typography>
-              </Box>
-            </Box>
-            <Box
-              display="flex"
-              flexDirection="row"
-              width="100%"
-              style={{ textAlign: "center" }}
-              justifyContent="center"
-            >
-              <Typography variant="body1" fullWidth>
-                Legacy Medical Consultants
-                <br />
-                9800 Hillwood Parkway, Suite 320
-                <br />
-                Fort Worth, TX 76177
-                <br />
-                p. 817-961-1288 f. 866-300-0431
-                <br />
-                customerservice@legacymedicalconsultants.com
-              </Typography>
-            </Box>
+                      9800 Hillwood Parkway, Suite 320
+                      <br />
+                      Fort Worth, TX 76177
+                      <br />
+                      p. 817-961-1288 f. 866-300-0431
+                      <br />
+                      customerservice@legacymedicalconsultants.com
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
             {/* -----------------------------------PRODUCT SECTION------------------------------------------ */}
             <Typography
               variant="body2"
@@ -434,7 +465,9 @@ const CustomField = (props: CustomFieldProps) => {
             </Typography>
             <TextField
               fullWidth
+              value={comment}
               multiline
+              onChange={handleComment}
               rows={4}
               variant="outlined"
               placeholder="Comments..."
@@ -449,7 +482,7 @@ const CustomField = (props: CustomFieldProps) => {
               </Button>
               <Button
                 variant="contained"
-                onClick={handleNext}
+                onClick={handleSubmit}
                 style={{ background: "#1d343d", color: "white" }}
               >
                 Submit
@@ -461,7 +494,12 @@ const CustomField = (props: CustomFieldProps) => {
           <DialogContent
             style={{ maxWidth: "100%", overflowX: "hidden", padding: "10px" }}
           >
-            <Summary ivr={data?.ivr}  practitioner={data?.practitioner} handleNext={handleNext}/>
+            <Summary
+              ivr={data?.ivr}
+              practitioner={data?.practitioner}
+              handleNext={handleNext}
+              handleDialogClose = {handleDialogClose}
+            />
           </DialogContent>
         )}
       </Dialog>
