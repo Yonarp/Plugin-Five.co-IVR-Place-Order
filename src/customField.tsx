@@ -18,12 +18,15 @@ import {
   TableRow,
   Container,
   IconButton,
+  TextField,
+  TableContainer,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import Delete from "@mui/icons-material/Delete";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 import { CustomFieldProps } from "../../../common";
 import Summary from "./Components/Summary";
+import { Email } from "@mui/icons-material";
 
 FiveInitialize();
 
@@ -31,12 +34,15 @@ const CustomField = (props: CustomFieldProps) => {
   //@ts-ignore
   const { theme, value, onValueUpdated, variant, five, selectedRecord } = props;
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
+  const [email, setEmail] = useState(null);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [comment, setComment] = useState("")
+  const [comment, setComment] = useState("");
   //@ts-ignore
   const [productList, setProductList] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
+
   const [orderProducts, setOrderProducts] = useState([
     { product: "", price: 0, qty: 1, discount: 0, amount: 0 },
   ]);
@@ -44,7 +50,8 @@ const CustomField = (props: CustomFieldProps) => {
   const [page, setPage] = useState(1);
   const [selectedAddress, setSelectedAddress] = useState("");
   const [addressName, setAddressName] = useState(null);
-  const [fullAddress, setFullAddress] = useState(null) // --> added as per Jonathans request
+  const [fullAddress, setFullAddress] = useState(null);
+  const [payors, setPayors] = useState([]);
 
   const discountPercentages = {
     Impax: 0.2,
@@ -66,7 +73,7 @@ const CustomField = (props: CustomFieldProps) => {
     };
 
     console.log("Printing Orders", order);
-    
+
     await five.executeFunction(
       "pushOrder",
       //@ts-ignore
@@ -78,6 +85,33 @@ const CustomField = (props: CustomFieldProps) => {
     );
     handleDialogClose();
   };
+
+  const handleSendEmail = async () => {
+
+
+    const emailObject = {
+      link: selectedRecord.data.editLink,
+      email: email,
+    }
+
+    await five.executeFunction(
+      "triggerEmailPDF",
+      //@ts-ignore
+      emailObject,
+      null,
+      null,
+      null,
+      (result) => {
+
+        
+      }
+    );
+    
+    handleEmailDialogClose()
+    five.message("Request Sent")
+
+
+  }
 
   const handleDialogOpen = () => {
     setDialogOpen(true);
@@ -91,7 +125,7 @@ const CustomField = (props: CustomFieldProps) => {
         null,
         null,
         null,
-        (result) => {
+        async (result) => {
           console.log("Logging Order");
           const response = JSON.parse(result.serverResponse.results);
           console.log(response);
@@ -102,7 +136,33 @@ const CustomField = (props: CustomFieldProps) => {
           );
           setSelectedAddress(primaryAddress?.___ADD || "");
           setAddressName(primaryAddress?.AddressName);
-          setFullAddress(primaryAddress)
+          setFullAddress(primaryAddress);
+
+          const payorKeys = [
+            response?.patient?.__PAY1,
+            response?.patient?.__PAY2,
+          ].filter(Boolean);
+
+          const payorPromises = payorKeys.map((payorKey) => {
+            const payorObject = { PayKey: payorKey };
+            return new Promise((resolve) => {
+              five.executeFunction(
+                "getPatientInsurance",
+                payorObject,
+                null,
+                null,
+                null,
+                (result) => {
+                  const payorData = JSON.parse(result.serverResponse.results);
+                  resolve(payorData.response.value[0]);
+                }
+              );
+            });
+          });
+
+          const payorArray = await Promise.all(payorPromises);
+          setPayors(payorArray);
+
           setLoading(false);
         }
       );
@@ -113,6 +173,14 @@ const CustomField = (props: CustomFieldProps) => {
 
   const handleDialogClose = () => {
     setDialogOpen(false);
+  };
+
+  const handleEmailDialogOpen = () => {
+    setEmailDialogOpen(true);
+  };
+
+  const handleEmailDialogClose = () => {
+    setEmailDialogOpen(false);
   };
 
   const handleAddProductRow = () => {
@@ -155,35 +223,38 @@ const CustomField = (props: CustomFieldProps) => {
 
   const handleAddressChange = (event) => {
     const address = JSON.parse(event.target.value);
-    console.log("Logging address",address)
+    console.log("Logging address", address);
     setSelectedAddress(address.ADD);
     setAddressName(address.Name);
-    setFullAddress(address.address)
+    setFullAddress(address.address);
   };
 
   const handleDelete = (index) => {
     const newOrderProducts = orderProducts.filter((_, i) => i !== index);
     setOrderProducts(newOrderProducts);
   };
-  
+
   const handleNext = () => {
     setPage(--page);
   };
-  
+
   const getTotalAmount = () => {
     return orderProducts.reduce((total, product) => total + product.amount, 0);
   };
-  
+
   const handleComment = (event) => {
-    setComment(event.target.value)
-  }
+    setComment(event.target.value);
+  };
+  const handleDateChange = (newDate) => {
+    setServiceDate(newDate);
+  };
+
   useEffect(() => {
     setTotalAmount(getTotalAmount());
   }, [orderProducts]);
-  
-  console.log("Printing Comment", comment);
-  
-  
+
+  console.log("Printing payors", payors);
+
   if (loading) {
     return (
       <Container
@@ -225,120 +296,152 @@ const CustomField = (props: CustomFieldProps) => {
           },
         }}
       >
-        <DialogTitle style={{ backgroundColor: "#225D7A", color: "white" }}>
-          Place Order
+        <DialogTitle style={{ backgroundColor: "#246382", color: "white" }}>
+          <Box
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "space-between",
+            }}
+          >
+            <Typography>Place Order</Typography>
+            <IconButton
+              style={{
+                width: 'auto',
+                height:'auto',
+                color: "white",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+              onClick={handleEmailDialogOpen}
+            >
+              <Email   style={{
+                  fill: "#FFF",
+                  color: "#FFF",
+                  cursor: "pointer",
+                  marginRight: "5px",
+                }} />
+              <Typography
+                variant="body1"
+                style={{
+                  fill: "#FFF",
+                  color: "#FFF",
+                  cursor: "pointer",
+                }}
+              >
+                Get Email
+              </Typography>
+            </IconButton>
+          </Box>
         </DialogTitle>
         {page === 0 && (
           <DialogContent
             style={{ maxWidth: "100%", overflowX: "hidden", padding: "10px" }}
           >
-            <Table>
-              <TableBody>
-                <TableRow>
-                  <TableCell style={{ borderBottom: "none" }}>
-                    <Typography variant="body1">
-                      Products:{" "}
-                      <strong>
-                        {data?.product?.Brand + "-" + data?.product?.QCode}
-                      </strong>
-                    </Typography>
-                  </TableCell>
-                  <TableCell style={{ borderBottom: "none" }}>
-                    <Typography variant="body1">
-                      Wound Size (CM²): <strong>{data?.ivr?.WoundSize}</strong>
-                    </Typography>
-                  </TableCell>
-                  <TableCell style={{ borderBottom: "none" }}>
-                    <Typography variant="body1">
-                      Wound Type: <strong>{data?.ivr?.WoundType}</strong>
-                    </Typography>
-                  </TableCell>
-                  <TableCell style={{ borderBottom: "none" }}>
-                    <Typography variant="body1">
-                      Account: <strong>{data?.ivr?.Account}</strong>
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell style={{ borderBottom: "none" }}>
-                    <Typography variant="body1">
-                      Approval Date: <strong>{data?.ivr?.ApprovalDate}</strong>
-                    </Typography>
-                  </TableCell>
-                  <TableCell style={{ borderBottom: "none" }}>
-                    <Typography variant="body1">
-                      Date Of Service: <strong>{data?.ivr?.Date}</strong>
-                    </Typography>
-                  </TableCell>
-                  <TableCell style={{ borderBottom: "none" }}>
-                    <Typography variant="body1">
-                      Place Of Service:{" "}
-                      <strong>{data?.ivr?.PlaceofService}</strong>
-                    </Typography>
-                  </TableCell>
-                  <TableCell style={{ borderBottom: "none" }}>
-                    <Typography variant="body1">
-                      MAC: <strong>{data?.account?.MacValue}</strong>
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-            <Table
-              style={{ width: "100%", marginBottom: "16px", padding: "10px 0" }}
-            >
-              <TableBody>
-                <TableRow>
-                  <TableCell
-                    align="left"
-                    style={{
-                      width: "50%",
-                      borderBottom: "none",
-                      verticalAlign: "top",
-                    }}
-                  >
-                    <Typography variant="subtitle1" style={{ width: "40%" }}>
-                      Shipping Address:
-                    </Typography>
-                    <Select
-                      value={JSON.stringify({
-                        address: fullAddress,
-                        ADD: selectedAddress,
-                        Name: addressName,
-                      })}
-                      onChange={handleAddressChange}
-                      displayEmpty
-                      fullWidth
-                      style={{ width: "60%", border: "none", outline: "none" }}
-                      variant="standard"
-                      disableUnderline
+            <Typography variant="h6" mt={5}>
+              Details:{" "}
+            </Typography>
+            <TableContainer component={Paper}>
+              <Table>
+                <TableBody style={{ border: "1px solid black" }}>
+                  <TableRow>
+                    <TableCell component="th" scope="row">
+                      <strong>Products:</strong>
+                    </TableCell>
+                    <TableCell>
+                      {data?.product?.Brand + "-" + data?.product?.QCode}
+                    </TableCell>
+                    <TableCell component="th" scope="row">
+                      <strong>Wound Size (CM²):</strong>
+                    </TableCell>
+                    <TableCell>{data?.ivr?.WoundSize}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell component="th" scope="row">
+                      <strong>Wound Type:</strong>
+                    </TableCell>
+                    <TableCell>{data?.ivr?.WoundType}</TableCell>
+                    <TableCell component="th" scope="row">
+                      <strong>Account:</strong>
+                    </TableCell>
+                    <TableCell>{data?.ivr?.Account}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell component="th" scope="row">
+                      <strong>Approval Date:</strong>
+                    </TableCell>
+                    <TableCell>{data?.ivr?.ApprovalDate}</TableCell>
+                    <TableCell component="th" scope="row">
+                      <strong>Date Of Service:</strong>
+                    </TableCell>
+                    <TableCell>
+                      <TextField
+                        type="date"
+                        defaultValue={data?.ivr?.Date}
+                        onChange={(e) => handleDateChange(e.target.value)}
+                        InputProps={{
+                          style: { fontSize: "0.875rem" }, // Adjust font size to match other cells
+                        }}
+                      />
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell component="th" scope="row">
+                      <strong>Place Of Service:</strong>
+                    </TableCell>
+                    <TableCell>{data?.ivr?.PlaceofService}</TableCell>
+                    <TableCell component="th" scope="row">
+                      <strong>MAC:</strong>
+                    </TableCell>
+                    <TableCell>{data?.account?.MacValue}</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </TableContainer>
+            <Typography variant="h6" mt={5}>
+              Address:{" "}
+            </Typography>
+            <TableContainer style={{ marginTop: "20px" }} component={Paper}>
+              <Table>
+                <TableBody style={{ border: "1px solid black" }}>
+                  <TableRow>
+                    <TableCell
+                      component="th"
+                      scope="row"
+                      style={{ width: "50%", verticalAlign: "top" }}
                     >
-                      {data?.address.map((address) => (
-                        <MenuItem
-                          key={address.___ADD}
-                          value={JSON.stringify({
-                            address: address,
-                            ADD: address.___ADD,
-                            Name: address.AddressName,
-                          })}
-                        >
-                          {address.AddressName}
-                          <br />
-                          {address.AddressStreet + " " + address.AddressCity}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </TableCell>
-                  <TableCell
-                    align="right"
-                    style={{
-                      width: "50%",
-                      borderBottom: "none",
-                      verticalAlign: "top",
-                    }}
-                  >
-                    <Typography variant="body1">Address: &nbsp;</Typography>
-                    <Typography variant="body2" fullWidth>
+                      <strong>Shipping Address:</strong>
+                      <Select
+                        value={JSON.stringify({
+                          address: fullAddress,
+                          ADD: selectedAddress,
+                          Name: addressName,
+                        })}
+                        onChange={handleAddressChange}
+                        displayEmpty
+                        fullWidth
+                        style={{ marginTop: "8px" }}
+                      >
+                        {data?.address.map((address) => (
+                          <MenuItem
+                            key={address.___ADD}
+                            value={JSON.stringify({
+                              address: address,
+                              ADD: address.___ADD,
+                              Name: address.AddressName,
+                            })}
+                          >
+                            {address.AddressName}
+                            <br />
+                            {address.AddressStreet + " " + address.AddressCity}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </TableCell>
+                    <TableCell style={{ width: "50%", verticalAlign: "top" }}>
+                      <strong>Address:</strong>
+                      <br />
                       Legacy Medical Consultants
                       <br />
                       9800 Hillwood Parkway, Suite 320
@@ -348,18 +451,14 @@ const CustomField = (props: CustomFieldProps) => {
                       p. 817-961-1288 f. 866-300-0431
                       <br />
                       customerservice@legacymedicalconsultants.com
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-            {/* -----------------------------------PRODUCT SECTION------------------------------------------ */}
-            <Typography
-              variant="body2"
-              align="center"
-              style={{ marginBottom: 20, marginTop: 30 }}
-            >
-              PLEASE SELECT THE DESIRED PRODUCTS FOR YOUR ORDER
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </TableContainer>
+
+            <Typography variant="h6" mt={5}>
+              Please Select The Desired Products For The Order
             </Typography>
             <Table>
               <TableHead>
@@ -408,6 +507,7 @@ const CustomField = (props: CustomFieldProps) => {
                           handleProductChange(index, "qty", e.target.value)
                         }
                         min="1"
+                        style={{ width: "60px" }}
                       />
                     </TableCell>
                     <TableCell>
@@ -431,7 +531,7 @@ const CustomField = (props: CustomFieldProps) => {
                         onClick={() => handleDelete(index)}
                         style={{ color: "red" }}
                       >
-                        <Delete />
+                        <DeleteIcon />
                       </IconButton>
                     </TableCell>
                   </TableRow>
@@ -459,7 +559,6 @@ const CustomField = (props: CustomFieldProps) => {
                 <AddIcon style={{ fill: "white", color: "white" }} />
               </IconButton>
             </Box>
-
             <Typography variant="body1" sx={{ mb: 1 }} mt={5}>
               Write your comments here
             </Typography>
@@ -498,10 +597,52 @@ const CustomField = (props: CustomFieldProps) => {
               ivr={data?.ivr}
               practitioner={data?.practitioner}
               handleNext={handleNext}
-              handleDialogClose = {handleDialogClose}
+              handleDialogClose={handleDialogClose}
+              payors={payors}
+              patient={data?.patient}
             />
           </DialogContent>
         )}
+        <Dialog open={emailDialogOpen} onClose={handleEmailDialogClose}>
+          <DialogTitle>Send PDF</DialogTitle>
+          <DialogContent style={{ width: "400px" }}>
+            <Typography variant="body1" mb={5}>
+              Please provide your email address, and you will receive a PDF of
+              the patient beneficiary summary.
+            </Typography>
+            <Typography variant="body2" style={{ color: "red" }} >
+              <span style={{ fontWeight: "bold", color: "black" }}>NOTE:</span>{" "}
+              it can take up to 5 minutes for you to receive the email.
+            </Typography>
+            <TextField
+              fullWidth
+              margin="normal"
+              label="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <Box
+              style={{
+                display: "flex",
+                width: "100%",
+                justifyContent: "center",
+                alignItems: "center",
+                marginTop: '20px'
+              }}
+            >
+              <Button
+                style={{
+                  width: "15vw",
+                  backgroundColor: "#1d343d",
+                  color: "white",
+                }}
+                onClick={handleSendEmail}
+              >
+                Send
+              </Button>
+            </Box>
+          </DialogContent>
+        </Dialog>
       </Dialog>
     </Box>
   );
