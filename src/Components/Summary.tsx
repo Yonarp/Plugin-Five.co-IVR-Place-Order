@@ -155,7 +155,7 @@ const Summary = ({
                 <TableRow>
                   <TableCell component="th" scope="row">
                     <strong> SECONDARY INSURANCE:</strong> &nbsp;{" "}
-                    {payors[1].CompanyName}
+                    {payors[1]?.CompanyName}
                   </TableCell>
                   <TableCell style={{ width: "350px" }}>
                     {" "}

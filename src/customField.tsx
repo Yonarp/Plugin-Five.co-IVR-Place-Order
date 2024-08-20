@@ -102,15 +102,12 @@ const CustomField = (props: CustomFieldProps) => {
       null,
       null,
       (result) => {
-
         
       }
     );
     
     handleEmailDialogClose()
     five.message("Request Sent")
-
-
   }
 
   const handleDialogOpen = () => {
@@ -630,14 +627,14 @@ const CustomField = (props: CustomFieldProps) => {
                 marginTop: '20px'
               }}
             >
-              <Button
+            <Button
                 style={{
                   width: "15vw",
                   backgroundColor: "#1d343d",
                   color: "white",
                 }}
                 onClick={handleSendEmail}
-              >
+            >
                 Send
               </Button>
             </Box>
