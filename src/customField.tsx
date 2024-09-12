@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 
 //@ts-ignore
-import { Box, Card, CircularProgress, FiveInitialize } from "./FivePluginApi";
+import { Box, Card, CircularProgress, FiveInitialize, IconButton } from "./FivePluginApi";
 import {
   Button,
   Dialog,
@@ -17,16 +17,15 @@ import {
   TableHead,
   TableRow,
   Container,
-  IconButton,
+
   TextField,
   TableContainer,
 } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import DeleteIcon from "@mui/icons-material/Delete";
+
 
 import { CustomFieldProps } from "../../../common";
 import Summary from "./Components/Summary";
-import { Email } from "@mui/icons-material";
+
 
 FiveInitialize();
 
@@ -52,13 +51,14 @@ const CustomField = (props: CustomFieldProps) => {
   const [addressName, setAddressName] = useState(null);
   const [fullAddress, setFullAddress] = useState(null);
   const [payors, setPayors] = useState([]);
+  const [discountPercentages, setDiscountPercentages] = useState({})
 
-  const discountPercentages = {
+  /* const discountPercentages = {
     Impax: 0.2,
     Orion: 0.4,
-    Surgraft: 0.1,
+    S urgraft: 0.1,
     Zenith: 0.3,
-  };
+  }; */
 
   const handleSubmit = async () => {
     const order = {
@@ -66,10 +66,12 @@ const CustomField = (props: CustomFieldProps) => {
       USR: data.practitioner.___USR,
       IVR: data.ivr.___IVR,
       ADD: selectedAddress,
+      PAT: data?.patient?.___PAT,
       AddressName: addressName,
       amount: totalAmount,
       products: orderProducts,
       comment: comment,
+      
     };
 
     console.log("Printing Orders", order);
@@ -87,7 +89,6 @@ const CustomField = (props: CustomFieldProps) => {
   };
 
   const handleSendEmail = async () => {
-
 
     const emailObject = {
       link: selectedRecord.data.editLink,
@@ -134,6 +135,12 @@ const CustomField = (props: CustomFieldProps) => {
           setSelectedAddress(primaryAddress?.___ADD || "");
           setAddressName(primaryAddress?.AddressName);
           setFullAddress(primaryAddress);
+          setDiscountPercentages({
+            Impax: response.account?.DiscountPercentageImpax,
+            Orion:response.account?.DiscountPercentageOrion,
+            Surgraft: response.account?.DiscountPercentageSurgraft,
+            Zenith: response.account?.DiscountPercentageZenith,
+          })
 
           const payorKeys = [
             response?.patient?.__PAY1,
@@ -159,7 +166,6 @@ const CustomField = (props: CustomFieldProps) => {
 
           const payorArray = await Promise.all(payorPromises);
           setPayors(payorArray);
-
           setLoading(false);
         }
       );
@@ -248,6 +254,7 @@ const CustomField = (props: CustomFieldProps) => {
 
   useEffect(() => {
     setTotalAmount(getTotalAmount());
+    console.log("From Place Order plugin loggin Five,", five)
   }, [orderProducts]);
 
   console.log("Printing payors", payors);
@@ -313,12 +320,7 @@ const CustomField = (props: CustomFieldProps) => {
               }}
               onClick={handleEmailDialogOpen}
             >
-              <Email   style={{
-                  fill: "#FFF",
-                  color: "#FFF",
-                  cursor: "pointer",
-                  marginRight: "5px",
-                }} />
+              
               <Typography
                 variant="body1"
                 style={{
@@ -452,8 +454,7 @@ const CustomField = (props: CustomFieldProps) => {
                   </TableRow>
                 </TableBody>
               </Table>
-            </TableContainer>
-
+            </TableContainer> 
             <Typography variant="h6" mt={5}>
               Please Select The Desired Products For The Order
             </Typography>
@@ -528,7 +529,7 @@ const CustomField = (props: CustomFieldProps) => {
                         onClick={() => handleDelete(index)}
                         style={{ color: "red" }}
                       >
-                        <DeleteIcon />
+                        <Typography variant="body2" style={{ color: "red" }}>Delete</Typography>
                       </IconButton>
                     </TableCell>
                   </TableRow>
@@ -549,12 +550,12 @@ const CustomField = (props: CustomFieldProps) => {
               </TableBody>
             </Table>
             <Box display="flex" justifyContent="flex-end" mt={2}>
-              <IconButton
+              <Button
                 onClick={handleAddProductRow}
-                style={{ background: "#225D7A", color: "white" }}
+                style={{ background: "#225D7A", color: "white", borderRadius: '50px' }}
               >
-                <AddIcon style={{ fill: "white", color: "white" }} />
-              </IconButton>
+                +
+              </Button>
             </Box>
             <Typography variant="body1" sx={{ mb: 1 }} mt={5}>
               Write your comments here
@@ -636,7 +637,7 @@ const CustomField = (props: CustomFieldProps) => {
                 onClick={handleSendEmail}
             >
                 Send
-              </Button>
+            </Button>
             </Box>
           </DialogContent>
         </Dialog>
