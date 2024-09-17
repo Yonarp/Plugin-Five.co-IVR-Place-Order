@@ -1,5 +1,5 @@
-import { Container,  TableBody, Typography } from "@mui/material";
-import React  from "react";
+import { Container, TableBody, Typography } from "@mui/material";
+import React, { useRef } from "react";
 import {
   Box,
   Button,
@@ -9,7 +9,7 @@ import {
   TableContainer,
   TableRow,
 } from "../FivePluginApi";
-
+import html2pdf from "html2pdf.js";
 
 const Summary = ({
   ivr,
@@ -20,13 +20,35 @@ const Summary = ({
   patient,
 }) => {
   console.log("IVR from  order summary", ivr);
- 
 
- 
+  const pdfRef = useRef();
+
+  const downloadPdf = () => {
+    const element = pdfRef.current; // Get the element to print
+    console.log("Logging Element from Download PDF", pdfRef.current);
+
+    const options = {
+      margin: 0.5,
+      filename: "Patient_Benefit_Verification_Summary.pdf",
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
+    };
+
+    // Generate the PDF
+    html2pdf().from(element).set(options).save();
+  };
+
   return (
     <Container>
+      <Box display="flex" justifyContent="flex-end" style={{ margin: "20px" }}>
+        <Button onClick={downloadPdf}  style={{background: 'none', color: "grey"}}>
+          Download as PDF &#8595;
+        </Button>
+      </Box>
+
       {ivr !== undefined && (
-        <Box style={{ position: "relative" }}>
+        <Box style={{ position: "relative" }} ref={pdfRef}>
           <Typography
             variant="h5"
             textAlign="center"
@@ -248,7 +270,6 @@ const Summary = ({
           </Box>
         </Box>
       )}
-     
     </Container>
   );
 };
