@@ -1,5 +1,5 @@
 import { Container, TableBody, Typography } from "@mui/material";
-import React, { useRef } from "react";
+import React, { useEffect, useRef , forwardRef, useImperativeHandle} from "react";
 import {
   Box,
   Button,
@@ -18,6 +18,7 @@ const Summary = ({
   handleDialogClose,
   payors,
   patient,
+  five
 }) => {
   console.log("IVR from  order summary", ivr);
 
@@ -39,6 +40,35 @@ const Summary = ({
     html2pdf().from(element).set(options).save();
   };
 
+
+  useEffect(() => {
+
+    const triggerLog = async () => {
+
+      const logObject = {
+        ORD: "",
+        ivr: ivr,
+        type: "IVR"
+      }
+   
+      await five.executeFunction(
+        "TriggerOpenIVRLog",
+        //@ts-ignore
+        logObject,
+        null,
+        null,
+        null,
+        //@ts-ignore
+        (result) => {
+          
+        }
+      );
+    }
+
+    triggerLog()
+
+  }, [])
+
   return (
     <Container>
       <Box display="flex" justifyContent="flex-end" style={{ margin: "20px" }}>
@@ -47,7 +77,7 @@ const Summary = ({
         </Button>
       </Box>
 
-      {ivr !== undefined && (
+      { ivr !== undefined && (
         <Box style={{ position: "relative" }} ref={pdfRef}>
           <Typography
             variant="h5"
@@ -244,7 +274,11 @@ const Summary = ({
           >
             {ivr?.Reason}
           </Typography>
-          <Box display="flex" justifyContent="center" width="100%">
+         
+        </Box>
+        
+      )}
+       <Box display="flex" justifyContent="center" width="100%">
             <Button
               onClick={handleDialogClose}
               style={{
@@ -268,8 +302,7 @@ const Summary = ({
               Confirm
             </Button>
           </Box>
-        </Box>
-      )}
+
     </Container>
   );
 };

@@ -309,29 +309,7 @@ const CustomField = (props: CustomFieldProps) => {
             }}
           >
             <Typography>Place Order</Typography>
-            <IconButton
-              style={{
-                width: 'auto',
-                height:'auto',
-                color: "white",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-              onClick={handleEmailDialogOpen}
-            >
-              
-              <Typography
-                variant="body1"
-                style={{
-                  fill: "#FFF",
-                  color: "#FFF",
-                  cursor: "pointer",
-                }}
-              >
-                Get Email
-              </Typography>
-            </IconButton>
+            
           </Box>
         </DialogTitle>
         {page === 0 && (
@@ -469,7 +447,7 @@ const CustomField = (props: CustomFieldProps) => {
                   <TableCell>Delete</TableCell>
                 </TableRow>
               </TableHead>
-              <TableBody>
+              <TableBody> 
                 {orderProducts.map((orderProduct, index) => (
                   <TableRow key={index}>
                     <TableCell>
@@ -597,6 +575,7 @@ const CustomField = (props: CustomFieldProps) => {
               handleNext={handleNext}
               handleDialogClose={handleDialogClose}
               payors={payors}
+              five={five}
               patient={data?.patient}
             />
           </DialogContent>
