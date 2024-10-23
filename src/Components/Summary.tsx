@@ -1,5 +1,11 @@
+//@ts-nocheck
+import React, {
+  useEffect,
+  useRef,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
 import { Container, TableBody, Typography } from "@mui/material";
-import React, { useEffect, useRef , forwardRef, useImperativeHandle} from "react";
 import {
   Box,
   Button,
@@ -11,22 +17,26 @@ import {
 } from "../FivePluginApi";
 import html2pdf from "html2pdf.js";
 
-const Summary = ({
-  ivr,
-  practitioner,
-  handleNext,
-  handleDialogClose,
-  payors,
-  patient,
-  five
-}) => {
-  console.log("IVR from  order summary", ivr);
+const Summary = forwardRef((props, ref) => {
+  const {
+    ivr,
+    practitioner,
+    handleNext,
+    handleDialogClose,
+    payors,
+    patient,
+    five,
+  } = props;
 
   const pdfRef = useRef();
 
+  useImperativeHandle(ref, () => ({
+    downloadPdf,
+  }));
+
   const downloadPdf = () => {
     const element = pdfRef.current; // Get the element to print
-    console.log("Logging Element from Download PDF", pdfRef.current);
+ 
 
     const options = {
       margin: 0.5,
@@ -40,17 +50,14 @@ const Summary = ({
     html2pdf().from(element).set(options).save();
   };
 
-
   useEffect(() => {
-
     const triggerLog = async () => {
-
       const logObject = {
         ORD: "",
         ivr: ivr,
-        type: "IVR"
-      }
-   
+        type: "IVR",
+      };
+
       await five.executeFunction(
         "TriggerOpenIVRLog",
         //@ts-ignore
@@ -59,25 +66,17 @@ const Summary = ({
         null,
         null,
         //@ts-ignore
-        (result) => {
-          
-        }
+        (result) => {}
       );
-    }
+    };
 
-    triggerLog()
-
-  }, [])
+    triggerLog();
+  }, []);
 
   return (
     <Container>
-      <Box display="flex" justifyContent="flex-end" style={{ margin: "20px" }}>
-        <Button onClick={downloadPdf}  style={{background: 'none', color: "grey"}}>
-          Download as PDF &#8595;
-        </Button>
-      </Box>
 
-      { ivr !== undefined && (
+      {ivr !== undefined && (
         <Box style={{ position: "relative" }} ref={pdfRef}>
           <Typography
             variant="h5"
@@ -147,9 +146,11 @@ const Summary = ({
                 <TableRow>
                   <TableCell component="th" scope="row">
                     <strong> PRIMARY INSURANCE: </strong> &nbsp;{" "}
-                    {payors[0].CompanyName}
+                    {payors[0]?.CompanyName}
                   </TableCell>
-                  <TableCell style={{ fontWeight: "bolder", width: "350px" }}>
+                  <TableCell
+                    style={{ fontWeight: "bolder", width: "350px" }}
+                  >
                     {" "}
                     <strong> MEMBER NUMBER:</strong> &nbsp;{" "}
                     {patient?.Pay1MemberNumber}
@@ -244,7 +245,9 @@ const Summary = ({
                 <TableCell>Out Of Pocket Met</TableCell>
                 <TableCell>{ivr?.BenerfitOutOfPocketMet2}</TableCell>
               </TableRow>
-              <TableRow style={{ borderTop: "3px solid black", padding: 20 }}>
+              <TableRow
+                style={{ borderTop: "3px solid black", padding: 20 }}
+              >
                 <TableCell scope="row" component="th">
                   NOTES
                 </TableCell>
@@ -274,37 +277,34 @@ const Summary = ({
           >
             {ivr?.Reason}
           </Typography>
-         
         </Box>
-        
       )}
-       <Box display="flex" justifyContent="center" width="100%">
-            <Button
-              onClick={handleDialogClose}
-              style={{
-                width: "15vw",
-                backgroundColor: "#780000",
-                color: "white",
-                marginRight: "10px",
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleNext}
-              style={{
-                width: "15vw",
-                backgroundColor: "#1d343d",
-                color: "white",
-                marginLeft: "10px",
-              }}
-            >
-              Confirm
-            </Button>
-          </Box>
-
+      <Box display="flex" justifyContent="center" width="100%">
+        <Button
+          onClick={handleDialogClose}
+          style={{
+            width: "15vw",
+            backgroundColor: "#780000",
+            color: "white",
+            marginRight: "10px",
+          }}
+        >
+          Cancel
+        </Button>
+        <Button
+          onClick={handleNext}
+          style={{
+            width: "15vw",
+            backgroundColor: "#1d343d",
+            color: "white",
+            marginLeft: "10px",
+          }}
+        >
+          Confirm
+        </Button>
+      </Box>
     </Container>
   );
-};
+});
 
 export default Summary;

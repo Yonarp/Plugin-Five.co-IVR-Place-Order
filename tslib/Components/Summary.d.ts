@@ -1,10 +1,3 @@
-declare const Summary: ({ ivr, practitioner, handleNext, handleDialogClose, payors, patient, five }: {
-    ivr: any;
-    practitioner: any;
-    handleNext: any;
-    handleDialogClose: any;
-    payors: any;
-    patient: any;
-    five: any;
-}) => JSX.Element;
+import React from "react";
+declare const Summary: React.ForwardRefExoticComponent<React.RefAttributes<unknown>>;
 export default Summary;

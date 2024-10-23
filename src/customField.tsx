@@ -1,8 +1,14 @@
 //@ts-nocheck
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 
 //@ts-ignore
-import { Box, Card, CircularProgress, FiveInitialize, IconButton } from "./FivePluginApi";
+import {
+  Box,
+  Card,
+  CircularProgress,
+  FiveInitialize,
+  IconButton,
+} from "./FivePluginApi";
 import {
   Button,
   Dialog,
@@ -17,15 +23,12 @@ import {
   TableHead,
   TableRow,
   Container,
-
   TextField,
   TableContainer,
 } from "@mui/material";
 
-
 import { CustomFieldProps } from "../../../common";
 import Summary from "./Components/Summary";
-
 
 FiveInitialize();
 
@@ -51,7 +54,9 @@ const CustomField = (props: CustomFieldProps) => {
   const [addressName, setAddressName] = useState(null);
   const [fullAddress, setFullAddress] = useState(null);
   const [payors, setPayors] = useState([]);
-  const [discountPercentages, setDiscountPercentages] = useState({})
+  const [discountPercentages, setDiscountPercentages] = useState({});
+
+  const summaryRef = useRef();
 
   /* const discountPercentages = {
     Impax: 0.2,
@@ -71,10 +76,9 @@ const CustomField = (props: CustomFieldProps) => {
       amount: totalAmount,
       products: orderProducts,
       comment: comment,
-      
     };
 
-    console.log("Printing Orders", order);
+  
 
     await five.executeFunction(
       "pushOrder",
@@ -89,11 +93,10 @@ const CustomField = (props: CustomFieldProps) => {
   };
 
   const handleSendEmail = async () => {
-
     const emailObject = {
       link: selectedRecord.data.editLink,
       email: email,
-    }
+    };
 
     await five.executeFunction(
       "triggerEmailPDF",
@@ -102,14 +105,12 @@ const CustomField = (props: CustomFieldProps) => {
       null,
       null,
       null,
-      (result) => {
-        
-      }
+      (result) => {}
     );
-    
-    handleEmailDialogClose()
-    five.message("Request Sent")
-  }
+
+    handleEmailDialogClose();
+    five.message("Request Sent");
+  };
 
   const handleDialogOpen = () => {
     setDialogOpen(true);
@@ -137,10 +138,10 @@ const CustomField = (props: CustomFieldProps) => {
           setFullAddress(primaryAddress);
           setDiscountPercentages({
             Impax: response.account?.DiscountPercentageImpax,
-            Orion:response.account?.DiscountPercentageOrion,
+            Orion: response.account?.DiscountPercentageOrion,
             Surgraft: response.account?.DiscountPercentageSurgraft,
             Zenith: response.account?.DiscountPercentageZenith,
-          })
+          });
 
           const payorKeys = [
             response?.patient?.__PAY1,
@@ -226,7 +227,6 @@ const CustomField = (props: CustomFieldProps) => {
 
   const handleAddressChange = (event) => {
     const address = JSON.parse(event.target.value);
-    console.log("Logging address", address);
     setSelectedAddress(address.ADD);
     setAddressName(address.Name);
     setFullAddress(address.address);
@@ -254,10 +254,10 @@ const CustomField = (props: CustomFieldProps) => {
 
   useEffect(() => {
     setTotalAmount(getTotalAmount());
-    console.log("From Place Order plugin loggin Five,", five)
+
   }, [orderProducts]);
 
-  console.log("Printing payors", payors);
+
 
   if (loading) {
     return (
@@ -309,7 +309,12 @@ const CustomField = (props: CustomFieldProps) => {
             }}
           >
             <Typography>Place Order</Typography>
-            
+            <Button
+              onClick={() => summaryRef.current.downloadPdf()}
+              style={{ background: "none", color: "white" }}
+            >
+              Download as PDF &#8595;
+            </Button>
           </Box>
         </DialogTitle>
         {page === 0 && (
@@ -432,7 +437,7 @@ const CustomField = (props: CustomFieldProps) => {
                   </TableRow>
                 </TableBody>
               </Table>
-            </TableContainer> 
+            </TableContainer>
             <Typography variant="h6" mt={5}>
               Please Select The Desired Products For The Order
             </Typography>
@@ -447,7 +452,7 @@ const CustomField = (props: CustomFieldProps) => {
                   <TableCell>Delete</TableCell>
                 </TableRow>
               </TableHead>
-              <TableBody> 
+              <TableBody>
                 {orderProducts.map((orderProduct, index) => (
                   <TableRow key={index}>
                     <TableCell>
@@ -507,7 +512,9 @@ const CustomField = (props: CustomFieldProps) => {
                         onClick={() => handleDelete(index)}
                         style={{ color: "red" }}
                       >
-                        <Typography variant="body2" style={{ color: "red" }}>Delete</Typography>
+                        <Typography variant="body2" style={{ color: "red" }}>
+                          Delete
+                        </Typography>
                       </IconButton>
                     </TableCell>
                   </TableRow>
@@ -530,7 +537,11 @@ const CustomField = (props: CustomFieldProps) => {
             <Box display="flex" justifyContent="flex-end" mt={2}>
               <Button
                 onClick={handleAddProductRow}
-                style={{ background: "#225D7A", color: "white", borderRadius: '50px' }}
+                style={{
+                  background: "#225D7A",
+                  color: "white",
+                  borderRadius: "50px",
+                }}
               >
                 +
               </Button>
@@ -571,6 +582,7 @@ const CustomField = (props: CustomFieldProps) => {
           >
             <Summary
               ivr={data?.ivr}
+              ref={summaryRef}
               practitioner={data?.practitioner}
               handleNext={handleNext}
               handleDialogClose={handleDialogClose}
@@ -587,7 +599,7 @@ const CustomField = (props: CustomFieldProps) => {
               Please provide your email address, and you will receive a PDF of
               the patient beneficiary summary.
             </Typography>
-            <Typography variant="body2" style={{ color: "red" }} >
+            <Typography variant="body2" style={{ color: "red" }}>
               <span style={{ fontWeight: "bold", color: "black" }}>NOTE:</span>{" "}
               it can take up to 5 minutes for you to receive the email.
             </Typography>
@@ -604,19 +616,19 @@ const CustomField = (props: CustomFieldProps) => {
                 width: "100%",
                 justifyContent: "center",
                 alignItems: "center",
-                marginTop: '20px'
+                marginTop: "20px",
               }}
             >
-            <Button
+              <Button
                 style={{
                   width: "15vw",
                   backgroundColor: "#1d343d",
                   color: "white",
                 }}
                 onClick={handleSendEmail}
-            >
+              >
                 Send
-            </Button>
+              </Button>
             </Box>
           </DialogContent>
         </Dialog>
