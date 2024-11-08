@@ -44,7 +44,7 @@ const CustomField = (props: CustomFieldProps) => {
   //@ts-ignore
   const [productList, setProductList] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
-
+  const [selectedParentProduct, setSelectedParentProduct] = useState("");
   const [orderProducts, setOrderProducts] = useState([
     { product: "", price: 0, qty: 1, discount: 0, amount: 0 },
   ]);
@@ -76,6 +76,7 @@ const CustomField = (props: CustomFieldProps) => {
       amount: totalAmount,
       products: orderProducts,
       comment: comment,
+      fullAddress: fullAddress
     };
 
   
@@ -128,6 +129,16 @@ const CustomField = (props: CustomFieldProps) => {
           console.log("Logging Order");
           const response = JSON.parse(result.serverResponse.results);
           console.log(response);
+
+          if (response.product) {
+            setSelectedParentProduct("product");
+            setProductList(response.productList || []);
+          } else if (response.product2) {
+            setSelectedParentProduct("product2");
+            setProductList(response.productList2 || []);
+          }
+
+          
           setData(response);
           setProductList(response.productList);
           const primaryAddress = response.address.find(
@@ -194,6 +205,23 @@ const CustomField = (props: CustomFieldProps) => {
     ]);
   };
 
+
+  const handleParentProductChange = (event) => {
+    const selectedProduct = event.target.value;
+
+    // Update the selected parent product
+    setSelectedParentProduct(selectedProduct);
+
+    // Clear selected order products and update productList with the sub-products of the selected parent product
+    setOrderProducts([]);
+    if (selectedProduct === "product") {
+      setProductList(data.productList || []);
+    } else if (selectedProduct === "product2") {
+      setProductList(data.productList2 || []);
+    }
+  };
+
+
   const handleProductChange = (index, field, value) => {
     const selectedProduct = productList.find(
       (product) => product.___PRD === value
@@ -248,6 +276,7 @@ const CustomField = (props: CustomFieldProps) => {
   const handleComment = (event) => {
     setComment(event.target.value);
   };
+  
   const handleDateChange = (newDate) => {
     setServiceDate(newDate);
   };
@@ -331,9 +360,22 @@ const CustomField = (props: CustomFieldProps) => {
                     <TableCell component="th" scope="row">
                       <strong>Products:</strong>
                     </TableCell>
-                    <TableCell>
-                      {data?.product?.Brand + "-" + data?.product?.QCode}
-                    </TableCell>
+                    <Select
+            value={selectedParentProduct}
+            onChange={handleParentProductChange}
+            fullWidth
+          >
+            {data?.product && (
+              <MenuItem value="product">
+                {data?.product?.Brand + "-" + data?.product?.QCode}
+              </MenuItem>
+            )}
+            {data?.product2 && (
+              <MenuItem value="product2">
+                {data?.product2?.Brand + "-" + data?.product2?.QCode}
+              </MenuItem>
+            )}
+          </Select>
                     <TableCell component="th" scope="row">
                       <strong>Wound Size (CM²):</strong>
                     </TableCell>
