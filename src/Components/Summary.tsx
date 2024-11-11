@@ -1,11 +1,12 @@
 //@ts-nocheck
+
 import React, {
   useEffect,
   useRef,
   forwardRef,
   useImperativeHandle,
 } from "react";
-import { Container, TableBody, Typography } from "@mui/material";
+import { Container, Typography } from "@mui/material";
 import {
   Box,
   Button,
@@ -28,6 +29,9 @@ const Summary = forwardRef((props, ref) => {
     five,
   } = props;
 
+  console.log("Logging IVR For the current Order -----------------------------------------")
+  console.log(ivr)
+
   const pdfRef = useRef();
 
   useImperativeHandle(ref, () => ({
@@ -35,8 +39,7 @@ const Summary = forwardRef((props, ref) => {
   }));
 
   const downloadPdf = () => {
-    const element = pdfRef.current; // Get the element to print
- 
+    const element = pdfRef.current;
 
     const options = {
       margin: 0.5,
@@ -46,7 +49,6 @@ const Summary = forwardRef((props, ref) => {
       jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
     };
 
-    // Generate the PDF
     html2pdf().from(element).set(options).save();
   };
 
@@ -60,12 +62,10 @@ const Summary = forwardRef((props, ref) => {
 
       await five.executeFunction(
         "TriggerOpenIVRLog",
-        //@ts-ignore
         logObject,
         null,
         null,
         null,
-        //@ts-ignore
         (result) => {}
       );
     };
@@ -75,211 +75,268 @@ const Summary = forwardRef((props, ref) => {
 
   return (
     <Container>
-
       {ivr !== undefined && (
-        <Box style={{ position: "relative" }} ref={pdfRef}>
+        <Box
+          ref={pdfRef}
+          style={{
+            position: "relative",
+            padding: "20px",
+            maxWidth: "800px",
+            margin: "auto",
+          }}
+        >
           <Typography
-            variant="h5"
-            textAlign="center"
-            textTransform="capitalize"
-            style={{ fontWeight: "bold" }}
+            variant="h4"
+            style={{ fontWeight: "bold", color: "#4b4b4b" }}
           >
-            Patient Benefit Verification Summary
+            Legacy Medical
           </Typography>
-          <TableContainer component={Paper} style={{ marginTop: "40px" }}>
-            <Table>
-              <TableBody style={{ border: "1px solid black" }}>
-                <TableRow>
-                  <TableCell component="th" scope="row">
-                    <strong> ACCOUNT:</strong>
-                  </TableCell>
-                  <TableCell> {ivr?.Account} </TableCell>
-                  <TableCell component="th" scope="row">
-                    <strong> DATE:</strong>
-                  </TableCell>
-                  <TableCell>{ivr?.Date}</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell component="th" scope="row">
-                    <strong>ATTENTION:</strong>
-                  </TableCell>
-                  <TableCell>{ivr?.Contact}</TableCell>
-                  <TableCell component="th" scope="row">
-                    <strong> FAX:</strong>
-                  </TableCell>
-                  <TableCell></TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell component="th" scope="row">
-                    <strong>PHYSICIAN:</strong>
-                  </TableCell>
-                  <TableCell> {practitioner.NameFull} </TableCell>
-                  <TableCell component="th" scope="row">
-                    <strong> FROM:</strong>
-                  </TableCell>
-                  <TableCell></TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell component="th" scope="row">
-                    <strong>PATIENT:</strong>
-                  </TableCell>
-                  <TableCell> {ivr?.Patient} </TableCell>
-                  <TableCell component="th" scope="row"></TableCell>
-                  <TableCell> </TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell component="th" scope="row">
-                    <strong>IVR ID:</strong>
-                  </TableCell>
-                  <TableCell> {ivr?.IDShort} </TableCell>
-                  <TableCell component="th" scope="row">
-                    <strong> DOB:</strong>
-                  </TableCell>
-                  <TableCell>{ivr?.Date}</TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <TableContainer style={{ marginTop: "10px" }} component={Paper}>
-            <Table>
-              <TableBody style={{ border: "1px solid black" }}>
-                <TableRow>
-                  <TableCell component="th" scope="row">
-                    <strong> PRIMARY INSURANCE: </strong> &nbsp;{" "}
-                    {payors[0]?.CompanyName}
-                  </TableCell>
-                  <TableCell
-                    style={{ fontWeight: "bolder", width: "350px" }}
-                  >
-                    {" "}
-                    <strong> MEMBER NUMBER:</strong> &nbsp;{" "}
-                    {patient?.Pay1MemberNumber}
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </TableContainer>
-
-          <Table>
-            <TableBody>
-              <TableRow>
-                <TableCell scope="row" component="th">
-                  Deductible
-                </TableCell>
-                <TableCell>{ivr?.BenerfitDeductible1}</TableCell>
-                <TableCell>Deductible Met</TableCell>
-                <TableCell>{ivr?.BenerfitDeductibleMet1}</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell scope="row" component="th">
-                  Coinsurance
-                </TableCell>
-                <TableCell>{ivr?.BenefitCoinsurance1}</TableCell>
-                <TableCell>Co-Pay</TableCell>
-                <TableCell>{ivr?.BenefitCoPay1}</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell scope="row" component="th">
-                  Out Of Pocket
-                </TableCell>
-                <TableCell>{ivr?.BenerfitOutOfPocket1}</TableCell>
-                <TableCell>Out Of Pocket Met</TableCell>
-                <TableCell>{ivr?.BenerfitOutOfPocketMet1}</TableCell>
-              </TableRow>
-              <TableRow
-                style={{
-                  borderTop: "3px solid black",
-                  marginTop: "20px",
-                  padding: 20,
-                }}
-              >
-                <TableCell scope="row" component="th">
-                  NOTES
-                </TableCell>
-                <TableCell>{ivr?.BenefitNotes1}</TableCell>
-                <TableCell component="th" scope="row"></TableCell>
-                <TableCell> </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-          <TableContainer style={{ marginTop: "25px" }} component={Paper}>
-            <Table>
-              <TableBody style={{ border: "1px solid black" }}>
-                <TableRow>
-                  <TableCell component="th" scope="row">
-                    <strong> SECONDARY INSURANCE:</strong> &nbsp;{" "}
-                    {payors[1]?.CompanyName}
-                  </TableCell>
-                  <TableCell style={{ width: "350px" }}>
-                    {" "}
-                    <strong> MEMBER NUMBER:</strong> &nbsp;
-                    {patient?.Pay2MemberNumber}
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <Table>
-            <TableBody>
-              <TableRow>
-                <TableCell scope="row" component="th">
-                  Deductible
-                </TableCell>
-                <TableCell>{ivr?.BenerfitDeductible2}</TableCell>
-                <TableCell>Deductible Met</TableCell>
-                <TableCell>{ivr?.BenerfitDeductibleMet2}</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell scope="row" component="th">
-                  Coinsurance
-                </TableCell>
-                <TableCell>{ivr?.BenefitCoinsurance2}</TableCell>
-                <TableCell>Co-Pay</TableCell>
-                <TableCell>{ivr?.BenefitCoPay2}</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell scope="row" component="th">
-                  Out Of Pocket
-                </TableCell>
-                <TableCell>{ivr?.BenerfitOutOfPocket2}</TableCell>
-                <TableCell>Out Of Pocket Met</TableCell>
-                <TableCell>{ivr?.BenerfitOutOfPocketMet2}</TableCell>
-              </TableRow>
-              <TableRow
-                style={{ borderTop: "3px solid black", padding: 20 }}
-              >
-                <TableCell scope="row" component="th">
-                  NOTES
-                </TableCell>
-                <TableCell>{ivr?.BenefitNotes2}</TableCell>
-                <TableCell component="th" scope="row"></TableCell>
-                <TableCell> </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
           <Typography
             variant="h6"
-            textAlign="center"
-            textTransform="capitalize"
-            mt={10}
+            style={{ color: "#a9a900", marginBottom: "20px" }}
           >
-            Overall Summary And Notes
+            Patient Benefit Summary
           </Typography>
-          <Typography
+
+          <Box my={3} display="flex" flexDirection="row"  >
+            <Typography
+              variant="body1"
+              style={{ fontWeight: "bold", fontSize: "1.8em" }}
+            >
+              IVR
+            </Typography >
+            <Typography
             variant="body1"
-            style={{
-              whiteSpace: "pre-line",
-              padding: "16px",
-              border: "1px solid #ccc",
-              borderRadius: "4px",
-              minHeight: "300px",
-            }}
+            style={{ fontWeight: "bold", fontSize: "1.8em", marginLeft: "80px", color:'#8DAC6E' }}>
+              {ivr?.Status} 
+            </Typography>
+          </Box>
+
+          <TableContainer>
+            <Table style={{fontSize: "0.8rem"}}>
+              <TableRow>
+                <TableCell>
+                  <strong>Date of Service</strong>
+                </TableCell>
+                <TableCell colSpan={7}>{ivr?.Date}</TableCell>
+                </TableRow>
+                <TableRow>
+                <TableCell>
+                  <strong>Inquiry ID</strong>
+                </TableCell>
+                <TableCell colSpan={3}>{ivr?.IDShort}</TableCell>
+                <TableCell>
+                  <strong>PDM Rep/Date</strong>
+                </TableCell>
+                <TableCell colSpan={3}> 14/10/24</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>
+                  <strong>Facility Name</strong>
+                </TableCell>
+                <TableCell colSpan={3}>{ivr?.FacilityName}</TableCell>
+                <TableCell>
+                  <strong>Dr/Provider</strong>
+                </TableCell>
+                <TableCell colSpan={3}>{practitioner?.NameFull}</TableCell>
+                </TableRow>
+                <TableRow>
+                <TableCell>
+                  <strong>Distributor</strong>
+                </TableCell>
+                <TableCell colSpan={7}>Some Distributor Name</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>
+                  <strong>Patient Name</strong>
+                </TableCell>
+                <TableCell colSpan={3}>{ivr?.Patient}</TableCell>
+                <TableCell>
+                  <strong>Date of Birth</strong>
+                </TableCell>
+                <TableCell colSpan={3}>{ivr?.Date}</TableCell>
+                </TableRow>
+                <TableRow>
+                <TableCell>
+                  <strong>Primary Payer and ID</strong>
+                </TableCell>
+                <TableCell colSpan={3}>{payors[0]?.CompanyName}</TableCell>
+                <TableCell>
+                  <strong>Secondary Payer and ID</strong>
+                </TableCell>
+                <TableCell colSpan={3}>{payors[1]?.CompanyName}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>
+                  <strong>Q Code</strong>
+                </TableCell>
+                <TableCell colSpan={2}>{ivr?.QCode}</TableCell>
+                <TableCell>
+                  <strong>CPT Codes</strong>
+                </TableCell>
+                <TableCell colSpan={2}>{ivr?.CPTCodes}</TableCell>
+                <TableCell>
+                  <strong>Product Size</strong>
+                </TableCell>
+                <TableCell colSpan={2}>12</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>
+                  <strong>Primary DX</strong>
+                </TableCell>
+                <TableCell colSpan={2}>{ivr?.PrimaryDX}</TableCell>
+                <TableCell>
+                  <strong>Secondary DX</strong>
+                </TableCell>
+                <TableCell colSpan={2}>{ivr?.SecondaryDX}</TableCell>
+                <TableCell>
+                  <strong>Additional DXs</strong>
+                </TableCell>
+                <TableCell colSpan={2}>{ivr?.AdditionalDXs}</TableCell>
+              </TableRow>
+            </Table>
+          </TableContainer>
+
+         
+          <TableContainer>
+            <Table>
+            <TableRow>
+                <TableCell>
+                  <strong>Estimated Patient Responsibility</strong>
+                </TableCell>
+                <TableCell colSpan={7}> - </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>
+                  <strong>Primary Coverage Effective Date</strong>
+                </TableCell>
+                <TableCell colSpan={7}>{ivr?.PrimaryCoverageEffectiveDate}</TableCell>
+                </TableRow>
+              <TableRow>
+                <TableCell>
+                  <strong>Deductible</strong>
+                </TableCell>
+                <TableCell>{ivr?.BenerfitDeductible1}</TableCell>
+                <TableCell>
+                  <strong>Deductible Met</strong>
+                </TableCell>
+                <TableCell>{ivr?.BenerfitDeductibleMet1}</TableCell>
+
+                <TableCell>
+                  <strong>Deductible Owed</strong>
+                </TableCell>
+                <TableCell>{ivr?.BenerfitDeductibleOwed1}</TableCell>
+                <TableCell>
+                  <strong>Co-insurance</strong>
+                </TableCell>
+                <TableCell>{ivr?.BenefitCoinsurance1}</TableCell>
+                </TableRow>
+                <TableRow>
+                <TableCell>
+                  <strong>Secondary Coverage Effective Date</strong>
+                </TableCell>
+                <TableCell colSpan={7}>{ivr?.SecondaryCoverageEffectiveDate}</TableCell>
+                </TableRow>
+                <TableRow>
+                <TableCell>
+                  <strong>Deductible</strong>
+                </TableCell>
+                <TableCell>{ivr?.BenerfitDeductible2}</TableCell>
+                <TableCell colSpan={2}>
+                  <strong>Deductible Met</strong>
+                </TableCell>
+                <TableCell colSpan={2}>{ivr?.BenerfitDeductibleMet2}</TableCell>
+                <TableCell>
+                  <strong>Deductible Owed</strong>
+                </TableCell>
+                <TableCell>{ivr?.BenerfitDeductibleOwed2}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>
+                  <strong>Co-insurance</strong>
+                </TableCell>
+                <TableCell>{ivr?.BenefitCoinsurance2}</TableCell>
+                <TableCell>
+                  <strong>Copay</strong>
+                </TableCell>
+                <TableCell>{ivr?.BenefitCoPay2}</TableCell>
+              </TableRow>
+              {/* --------------------------------------------- */}
+              <TableRow>
+                <TableCell>
+                  <strong>Plan Type and Benefits</strong>
+                </TableCell>
+                <TableCell colSpan={7}>{ivr?.PlanType}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>
+                  <strong>Denial Reason</strong>
+                </TableCell>
+                <TableCell colSpan={7}>{ivr?.DenialReason}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>
+                  <strong>Notes</strong>
+                </TableCell>
+                <TableCell colSpan={7}>{ivr?.Notes}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>
+                  <strong>Representative Name</strong>
+                </TableCell>
+                <TableCell colSpan={3}>{ivr?.RepresentativeName}</TableCell>
+                <TableCell>
+                  <strong>Reference Number</strong>
+                </TableCell>
+                <TableCell colSpan={3}>{ivr?.ReferenceNumber}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>
+                  <strong>Representative Email</strong>
+                </TableCell>
+                <TableCell colSpan={3}>{ivr?.RepresentativeEmail}</TableCell>
+                <TableCell>
+                  <strong>Representative Phone</strong>
+                </TableCell>
+                <TableCell colSpan={3}>{ivr?.RepresentativePhone}</TableCell>
+              </TableRow>
+            </Table>
+          </TableContainer>
+
+
+          <Typography
+            variant="h6"
+            style={{ marginTop: "20px", fontStyle: "italic", textAlign: 'center', color:' black' }}
           >
-            {ivr?.Reason}
+            POS 32 OR 33 CANNOT BE A GUARANTEE THAT THE PATIENT IS NOT IN A PART
+            A STAY & THE FINANCIAL RESPONSIBILITY WILL BE ON THE PROVIDER
           </Typography>
+          <Box
+            mt={5}
+            py={2}
+            borderTop="1px solid #cccccc"
+            textAlign="center"
+            style={{ color: "#555555" }}
+          >
+            <Typography variant="caption" display="block" gutterBottom>
+              Legal Disclaimer: This does not guarantee payment, nor does insurance verification or prior authorization guarantee payment. Coverage and payment rates are based on provider’s contract. None of the content should be interpreted as billing or reimbursement advice or guidance. Documentation must support medical necessity. Please review medical policy for specific criteria.
+            </Typography>
+            <Typography variant="body2" display="block" gutterBottom>
+              <strong>Order & Customer Support Contact Details</strong>
+            </Typography>
+            <Typography variant="body2" display="block" gutterBottom>
+              Phone: (888) 585-0760 | Fax: (866) 300-0431
+            </Typography>
+            <Typography variant="body2" display="block" gutterBottom>
+              <a href="http://www.legacymedicalconsultants.com" target="_blank" rel="noopener noreferrer" style={{ color: "#000000", textDecoration: "none" }}>
+                www.legacymedicalconsultants.com
+              </a>{" "}
+              | info@legacymedicalconsultants.com
+            </Typography>
+          </Box>
         </Box>
       )}
-      <Box display="flex" justifyContent="center" width="100%">
+      <Box display="flex" justifyContent="center" alignItems="center" width="100%" mt={5}>
         <Button
           onClick={handleDialogClose}
           style={{

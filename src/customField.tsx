@@ -325,7 +325,6 @@ const CustomField = (props: CustomFieldProps) => {
           style: {
             width: "90%",
             height: "90%",
-            padding: "20px",
           },
         }}
       >
