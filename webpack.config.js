@@ -40,7 +40,7 @@ module.exports = {
                     options: { projectReferences: true },
                 },
                 exclude: /node_modules/,
-            },
+            }, 
         ]
     },
     resolve: { extensions: ['.tsx', '.ts', '.js', '.jsx'] },

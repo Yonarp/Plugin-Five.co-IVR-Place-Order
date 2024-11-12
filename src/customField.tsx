@@ -182,7 +182,6 @@ const CustomField = (props: CustomFieldProps) => {
         }
       );
     };
-
     fetchData();
   };
 
