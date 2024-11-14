@@ -67,10 +67,6 @@ const Summary = forwardRef((props, ref) => {
 
   const [base64Image, setBase64Image] = useState("");
 
-  console.log(
-    "Logging IVR For the current Order -----------------------------------------"
-  );
-  console.log(base64Image);
 
   const pdfRef = useRef();
 

@@ -4,7 +4,6 @@ import React, { useEffect, useState, useRef } from "react";
 //@ts-ignore
 import {
   Box,
-  Card,
   CircularProgress,
   FiveInitialize,
   IconButton,
@@ -23,12 +22,15 @@ import {
   TableHead,
   TableRow,
   Container,
+  Checkbox,
   TextField,
   TableContainer,
+  FormControlLabel,
 } from "@mui/material";
 
 import { CustomFieldProps } from "../../../common";
 import Summary from "./Components/Summary";
+
 
 FiveInitialize();
 
@@ -76,10 +78,8 @@ const CustomField = (props: CustomFieldProps) => {
       amount: totalAmount,
       products: orderProducts,
       comment: comment,
-      fullAddress: fullAddress
+      fullAddress: fullAddress,
     };
-
-  
 
     await five.executeFunction(
       "pushOrder",
@@ -126,10 +126,8 @@ const CustomField = (props: CustomFieldProps) => {
         null,
         null,
         async (result) => {
-          console.log("Logging Order");
+         
           const response = JSON.parse(result.serverResponse.results);
-          console.log(response);
-
           if (response.product) {
             setSelectedParentProduct("product");
             setProductList(response.productList || []);
@@ -138,7 +136,6 @@ const CustomField = (props: CustomFieldProps) => {
             setProductList(response.productList2 || []);
           }
 
-          
           setData(response);
           setProductList(response.productList);
           const primaryAddress = response.address.find(
@@ -204,7 +201,6 @@ const CustomField = (props: CustomFieldProps) => {
     ]);
   };
 
-
   const handleParentProductChange = (event) => {
     const selectedProduct = event.target.value;
 
@@ -219,7 +215,6 @@ const CustomField = (props: CustomFieldProps) => {
       setProductList(data.productList2 || []);
     }
   };
-
 
   const handleProductChange = (index, field, value) => {
     const selectedProduct = productList.find(
@@ -275,16 +270,17 @@ const CustomField = (props: CustomFieldProps) => {
   const handleComment = (event) => {
     setComment(event.target.value);
   };
-  
+
   const handleDateChange = (newDate) => {
     setServiceDate(newDate);
   };
 
   useEffect(() => {
     setTotalAmount(getTotalAmount());
-
   }, [orderProducts]);
 
+
+  console.log("Logging Data for IVR", data)
 
 
   if (loading) {
@@ -359,21 +355,21 @@ const CustomField = (props: CustomFieldProps) => {
                       <strong>Products:</strong>
                     </TableCell>
                     <Select
-            value={selectedParentProduct}
-            onChange={handleParentProductChange}
-            fullWidth
-          >
-            {data?.product && (
-              <MenuItem value="product">
-                {data?.product?.Brand + "-" + data?.product?.QCode}
-              </MenuItem>
-            )}
-            {data?.product2 && (
-              <MenuItem value="product2">
-                {data?.product2?.Brand + "-" + data?.product2?.QCode}
-              </MenuItem>
-            )}
-          </Select>
+                      value={selectedParentProduct}
+                      onChange={handleParentProductChange}
+                      fullWidth
+                    >
+                      {data?.product && (
+                        <MenuItem value="product">
+                          {data?.product?.Brand + "-" + data?.product?.QCode}
+                        </MenuItem>
+                      )}
+                      {data?.product2 && (
+                        <MenuItem value="product2">
+                          {data?.product2?.Brand + "-" + data?.product2?.QCode}
+                        </MenuItem>
+                      )}
+                    </Select>
                     <TableCell component="th" scope="row">
                       <strong>Wound Size (CM²):</strong>
                     </TableCell>
@@ -586,6 +582,8 @@ const CustomField = (props: CustomFieldProps) => {
                 +
               </Button>
             </Box>
+           
+
             <Typography variant="body1" sx={{ mb: 1 }} mt={5}>
               Write your comments here
             </Typography>
@@ -598,6 +596,44 @@ const CustomField = (props: CustomFieldProps) => {
               variant="outlined"
               placeholder="Comments..."
             />
+            
+            {data?.account?.FacilityType === "SNF" && (
+              <Box>
+                <Typography variant="body1" style={{
+                  fontSize: "1.4rem",
+                  fontWeight: '600',
+                  fontStyle: "bold"
+                }}>
+                  Disclaimer
+                  </Typography>
+                  <Typography variant="body2" style={{
+                  fontSize: "1rem",
+                  fontWeight: '500',
+                  
+                }}>
+                  By placing this order, the user acknowledges and
+                  agrees that orders for products placed through this system are
+                  contingent upon the patients eligibility and authorization
+                  status as determined by the original submission. <strong> It is the
+                  responsibility of the practitioner to verify that no changes
+                  have occurred to the patients eligibility or authorization
+                  status </strong> that would impact their qualification for the products
+                  ordered. 
+                  <br/>
+                  <br/>
+                  The portal does not automatically verify any change
+                  in eligibility or authorization status. By placing an order,
+                  the practitioner certifies that they have independently
+                  verified the patient’s current eligibility. Any orders placed
+                  under incorrect eligibility assumptions remain the sole
+                  responsibility of the facility, and Legacy Medical
+                  Consulttants shall not be liable for orders made under changed
+                  eligibility circumstances.
+                </Typography>
+                <FormControlLabel control={<Checkbox defaultChecked />} label="Label" />
+              </Box>
+            )}
+
             <Box display="flex" justifyContent="space-between" mt={2}>
               <Button
                 variant="contained"
@@ -614,6 +650,7 @@ const CustomField = (props: CustomFieldProps) => {
                 Submit
               </Button>
             </Box>
+            
           </DialogContent>
         )}
         {page === 1 && (
