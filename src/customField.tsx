@@ -26,11 +26,11 @@ import {
   TextField,
   TableContainer,
   FormControlLabel,
+  Paper,
 } from "@mui/material";
 
 import { CustomFieldProps } from "../../../common";
 import Summary from "./Components/Summary";
-
 
 FiveInitialize();
 
@@ -60,10 +60,13 @@ const CustomField = (props: CustomFieldProps) => {
 
   const summaryRef = useRef();
 
+  // New state variable for the disclaimer checkbox
+  const [disclaimerChecked, setDisclaimerChecked] = useState(false);
+
   /* const discountPercentages = {
     Impax: 0.2,
     Orion: 0.4,
-    S urgraft: 0.1,
+    Surgraft: 0.1,
     Zenith: 0.3,
   }; */
 
@@ -126,7 +129,6 @@ const CustomField = (props: CustomFieldProps) => {
         null,
         null,
         async (result) => {
-         
           const response = JSON.parse(result.serverResponse.results);
           if (response.product) {
             setSelectedParentProduct("product");
@@ -279,9 +281,7 @@ const CustomField = (props: CustomFieldProps) => {
     setTotalAmount(getTotalAmount());
   }, [orderProducts]);
 
-
-  console.log("Logging Data for IVR", data)
-
+  console.log("Logging Data for IVR", data);
 
   if (loading) {
     return (
@@ -354,22 +354,28 @@ const CustomField = (props: CustomFieldProps) => {
                     <TableCell component="th" scope="row">
                       <strong>Products:</strong>
                     </TableCell>
-                    <Select
-                      value={selectedParentProduct}
-                      onChange={handleParentProductChange}
-                      fullWidth
-                    >
-                      {data?.product && (
-                        <MenuItem value="product">
-                          {data?.product?.Brand + "-" + data?.product?.QCode}
-                        </MenuItem>
-                      )}
-                      {data?.product2 && (
-                        <MenuItem value="product2">
-                          {data?.product2?.Brand + "-" + data?.product2?.QCode}
-                        </MenuItem>
-                      )}
-                    </Select>
+                    <TableCell>
+                      <Select
+                        value={selectedParentProduct}
+                        onChange={handleParentProductChange}
+                        fullWidth
+                      >
+                        {data?.product && (
+                          <MenuItem value="product">
+                            {data?.product?.Brand +
+                              "-" +
+                              data?.product?.QCode}
+                          </MenuItem>
+                        )}
+                        {data?.product2 && (
+                          <MenuItem value="product2">
+                            {data?.product2?.Brand +
+                              "-" +
+                              data?.product2?.QCode}
+                          </MenuItem>
+                        )}
+                      </Select>
+                    </TableCell>
                     <TableCell component="th" scope="row">
                       <strong>Wound Size (CM²):</strong>
                     </TableCell>
@@ -399,7 +405,7 @@ const CustomField = (props: CustomFieldProps) => {
                         defaultValue={data?.ivr?.Date}
                         onChange={(e) => handleDateChange(e.target.value)}
                         InputProps={{
-                          style: { fontSize: "0.875rem" }, // Adjust font size to match other cells
+                          style: { fontSize: "0.875rem" },
                         }}
                       />
                     </TableCell>
@@ -452,7 +458,9 @@ const CustomField = (props: CustomFieldProps) => {
                           >
                             {address.AddressName}
                             <br />
-                            {address.AddressStreet + " " + address.AddressCity}
+                            {address.AddressStreet +
+                              " " +
+                              address.AddressCity}
                           </MenuItem>
                         ))}
                       </Select>
@@ -548,7 +556,10 @@ const CustomField = (props: CustomFieldProps) => {
                         onClick={() => handleDelete(index)}
                         style={{ color: "red" }}
                       >
-                        <Typography variant="body2" style={{ color: "red" }}>
+                        <Typography
+                          variant="body2"
+                          style={{ color: "red" }}
+                        >
                           Delete
                         </Typography>
                       </IconButton>
@@ -582,7 +593,6 @@ const CustomField = (props: CustomFieldProps) => {
                 +
               </Button>
             </Box>
-           
 
             <Typography variant="body1" sx={{ mb: 1 }} mt={5}>
               Write your comments here
@@ -596,41 +606,59 @@ const CustomField = (props: CustomFieldProps) => {
               variant="outlined"
               placeholder="Comments..."
             />
-            
+
             {data?.account?.FacilityType === "SNF" && (
-              <Box>
-                <Typography variant="body1" style={{
-                  fontSize: "1.4rem",
-                  fontWeight: '600',
-                  fontStyle: "bold"
-                }}>
+              <Box mt={5}>
+                <Typography
+                  variant="body1"
+                  style={{
+                    fontSize: "1.4rem",
+                    fontWeight: "600",
+                    fontStyle: "bold",
+                  }}
+                >
                   Disclaimer
-                  </Typography>
-                  <Typography variant="body2" style={{
-                  fontSize: "1rem",
-                  fontWeight: '500',
-                  
-                }}>
-                  By placing this order, the user acknowledges and
-                  agrees that orders for products placed through this system are
-                  contingent upon the patients eligibility and authorization
-                  status as determined by the original submission. <strong> It is the
-                  responsibility of the practitioner to verify that no changes
-                  have occurred to the patients eligibility or authorization
-                  status </strong> that would impact their qualification for the products
-                  ordered. 
-                  <br/>
-                  <br/>
-                  The portal does not automatically verify any change
-                  in eligibility or authorization status. By placing an order,
-                  the practitioner certifies that they have independently
-                  verified the patient’s current eligibility. Any orders placed
-                  under incorrect eligibility assumptions remain the sole
-                  responsibility of the facility, and Legacy Medical
-                  Consulttants shall not be liable for orders made under changed
-                  eligibility circumstances.
                 </Typography>
-                <FormControlLabel control={<Checkbox defaultChecked />} label="Label" />
+                <Typography
+                  variant="body2"
+                  style={{
+                    fontSize: "1rem",
+                    fontWeight: "500",
+                  }}
+                >
+                  By placing this order, the user acknowledges and agrees that
+                  orders for products placed through this system are contingent
+                  upon the patient's eligibility and authorization status as
+                  determined by the original submission.{" "}
+                  <strong>
+                    It is the responsibility of the practitioner to verify that
+                    no changes have occurred to the patient's eligibility or
+                    authorization status
+                  </strong>{" "}
+                  that would impact their qualification for the products
+                  ordered.
+                  <br />
+                  <br />
+                  The portal does not automatically verify any change in
+                  eligibility or authorization status. By placing an order, the
+                  practitioner certifies that they have independently verified
+                  the patient’s current eligibility. Any orders placed under
+                  incorrect eligibility assumptions remain the sole
+                  responsibility of the facility, and Legacy Medical Consultants
+                  shall not be liable for orders made under changed eligibility
+                  circumstances.
+                </Typography>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={disclaimerChecked}
+                      onChange={(e) =>
+                        setDisclaimerChecked(e.target.checked)
+                      }
+                    />
+                  }
+                  label="I agree to the disclaimer"
+                />
               </Box>
             )}
 
@@ -646,11 +674,13 @@ const CustomField = (props: CustomFieldProps) => {
                 variant="contained"
                 onClick={handleSubmit}
                 style={{ background: "#1d343d", color: "white" }}
+                disabled={
+                  data?.account?.FacilityType === "SNF" && !disclaimerChecked
+                }
               >
                 Submit
               </Button>
             </Box>
-            
           </DialogContent>
         )}
         {page === 1 && (
