@@ -43,6 +43,7 @@ const CustomField = (props: CustomFieldProps) => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [comment, setComment] = useState("");
+  const [serviceDate, setServiceDate] = useState("");
   //@ts-ignore
   const [productList, setProductList] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
@@ -71,6 +72,14 @@ const CustomField = (props: CustomFieldProps) => {
   }; */
 
   const handleSubmit = async () => {
+    const servicedate = new Date(serviceDate || data?.ivr?.Date);
+    const today = new Date();
+  
+    if (servicedate<= today) {
+      five.message("Date of Service cannot be earlier than or equal to today's date.");
+        return;
+    }
+
     const order = {
       ACT: data.account.___ACT,
       USR: data.practitioner.___USR,
@@ -82,6 +91,7 @@ const CustomField = (props: CustomFieldProps) => {
       products: orderProducts,
       comment: comment,
       fullAddress: fullAddress,
+      DateService: serviceDate
     };
 
     await five.executeFunction(
@@ -280,8 +290,6 @@ const CustomField = (props: CustomFieldProps) => {
   useEffect(() => {
     setTotalAmount(getTotalAmount());
   }, [orderProducts]);
-
-  console.log("Logging Data for IVR", data);
 
   if (loading) {
     return (
