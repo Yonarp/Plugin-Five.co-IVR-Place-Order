@@ -331,7 +331,7 @@ const CustomField = (props: CustomFieldProps) => {
           },
         }}
       >
-        <DialogTitle style={{ backgroundColor: "#246382", color: "white" }}>
+        <DialogTitle style={{ backgroundColor: "#15706A", color: "white" }}>
           <Box
             style={{
               display: "flex",
@@ -593,7 +593,7 @@ const CustomField = (props: CustomFieldProps) => {
               <Button
                 onClick={handleAddProductRow}
                 style={{
-                  background: "#225D7A",
+                  background: "#14706A",
                   color: "white",
                   borderRadius: "50px",
                 }}
@@ -674,14 +674,14 @@ const CustomField = (props: CustomFieldProps) => {
               <Button
                 variant="contained"
                 onClick={handleDialogClose}
-                style={{ background: "#225D7A", color: "white" }}
+                style={{ background: "#D8EEDA", color: "#157069" }}
               >
                 Cancel
               </Button>
               <Button
                 variant="contained"
                 onClick={handleSubmit}
-                style={{ background: "#1d343d", color: "white" }}
+                style={{ background: "#14706A", color: "white" }}
                 disabled={
                   data?.account?.FacilityType === "SNF" && !disclaimerChecked
                 }

@@ -484,8 +484,8 @@ const Summary = forwardRef((props, ref) => {
           onClick={handleDialogClose}
           style={{
             width: "15vw",
-            backgroundColor: "#780000",
-            color: "white",
+            backgroundColor: "#D8EEDA",
+            color: "#157069",
             marginRight: "10px",
           }}
         >
@@ -495,7 +495,7 @@ const Summary = forwardRef((props, ref) => {
           onClick={handleNext}
           style={{
             width: "15vw",
-            backgroundColor: "#1d343d",
+            backgroundColor: "#14706A",
             color: "white",
             marginLeft: "10px",
           }}
