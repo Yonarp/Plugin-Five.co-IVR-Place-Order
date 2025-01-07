@@ -593,8 +593,8 @@ const CustomField = (props: CustomFieldProps) => {
               <Button
                 onClick={handleAddProductRow}
                 style={{
-                  background: "#14706A",
-                  color: "white",
+                  background: "#D8EEDA",
+                  color: "#157069",
                   borderRadius: "50px",
                 }}
               >
