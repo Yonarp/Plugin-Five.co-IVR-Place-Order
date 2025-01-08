@@ -43,6 +43,7 @@ const CustomField = (props: CustomFieldProps) => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [comment, setComment] = useState("");
+  const [serviceDate, setServiceDate] = useState("");
   //@ts-ignore
   const [productList, setProductList] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
@@ -71,6 +72,14 @@ const CustomField = (props: CustomFieldProps) => {
   }; */
 
   const handleSubmit = async () => {
+    const servicedate = new Date(serviceDate || data?.ivr?.Date);
+    const today = new Date();
+  
+    if (servicedate<= today) {
+      five.message("Date of Service cannot be earlier than or equal to today's date.");
+        return;
+    }
+
     const order = {
       ACT: data.account.___ACT,
       USR: data.practitioner.___USR,
@@ -82,6 +91,7 @@ const CustomField = (props: CustomFieldProps) => {
       products: orderProducts,
       comment: comment,
       fullAddress: fullAddress,
+      DateService: serviceDate
     };
 
     await five.executeFunction(
@@ -281,8 +291,6 @@ const CustomField = (props: CustomFieldProps) => {
     setTotalAmount(getTotalAmount());
   }, [orderProducts]);
 
-  console.log("Logging Data for IVR", data);
-
   if (loading) {
     return (
       <Container
@@ -323,7 +331,7 @@ const CustomField = (props: CustomFieldProps) => {
           },
         }}
       >
-        <DialogTitle style={{ backgroundColor: "#246382", color: "white" }}>
+        <DialogTitle style={{ backgroundColor: "#15706A", color: "white" }}>
           <Box
             style={{
               display: "flex",
@@ -585,8 +593,8 @@ const CustomField = (props: CustomFieldProps) => {
               <Button
                 onClick={handleAddProductRow}
                 style={{
-                  background: "#225D7A",
-                  color: "white",
+                  background: "#D8EEDA",
+                  color: "#157069",
                   borderRadius: "50px",
                 }}
               >
@@ -666,14 +674,14 @@ const CustomField = (props: CustomFieldProps) => {
               <Button
                 variant="contained"
                 onClick={handleDialogClose}
-                style={{ background: "#225D7A", color: "white" }}
+                style={{ background: "#D8EEDA", color: "#157069" }}
               >
                 Cancel
               </Button>
               <Button
                 variant="contained"
                 onClick={handleSubmit}
-                style={{ background: "#1d343d", color: "white" }}
+                style={{ background: "#14706A", color: "white" }}
                 disabled={
                   data?.account?.FacilityType === "SNF" && !disclaimerChecked
                 }

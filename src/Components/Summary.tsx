@@ -220,7 +220,7 @@ const Summary = forwardRef((props, ref) => {
                 <TableCell colSpan={1}>
                   <strong>PDM Rep/Date</strong>
                 </TableCell>
-                <TableCell colSpan={3}> 14/10/24</TableCell>
+                <TableCell colSpan={3}>{ivr?.PBS_pdmRepDate}</TableCell>
               </DarkBorderTableRow>
               <DarkBorderTableRow>
                 <TableCell colSpan={1}>
@@ -236,7 +236,7 @@ const Summary = forwardRef((props, ref) => {
                 <TableCell colSpan={1}>
                   <strong>Distributor</strong>
                 </TableCell>
-                <TableCell colSpan={7}>Some Distributor Name</TableCell>
+                <TableCell colSpan={7}>{ivr?.Distributor}</TableCell>
               </DarkBorderTableRow>
               <DarkBorderTableRow>
                 <TableCell colSpan={1}>
@@ -246,7 +246,7 @@ const Summary = forwardRef((props, ref) => {
                 <TableCell colSpan={1}>
                   <strong>Date of Birth</strong>
                 </TableCell>
-                <TableCell colSpan={3}>{ivr?.Date}</TableCell>
+                <TableCell colSpan={3}></TableCell>
               </DarkBorderTableRow>
               <DarkBorderTableRow>
                 <TableCell colSpan={1}>
@@ -262,44 +262,44 @@ const Summary = forwardRef((props, ref) => {
                 <TableCell colSpan={1}>
                   <strong>Q Code</strong>
                 </TableCell>
-                <TableCell colSpan={1}>{ivr?.QCode} q-4512</TableCell>
+                <TableCell colSpan={1}>{ivr?.PBS_QCode}</TableCell>
                 <TableCell colSpan={1}>
                   <strong>CPT Codes</strong>
                 </TableCell>
-                <TableCell colSpan={1}>{ivr?.CPTCodes} EOE.621</TableCell>
+                <TableCell colSpan={1}>{ivr?.PBS_CPTCode}</TableCell>
                 <TableCell colSpan={1}>
                   <strong>Product Size</strong>
                 </TableCell>
-                <TableCell colSpan={4}>12</TableCell>
+                <TableCell colSpan={4}>{ivr?.PBS_ProductSize}</TableCell>
               </DarkBorderTableRow>
               <DarkBorderTableRow>
                 <TableCell colSpan={1}>
                   <strong>Primary DX</strong>
                 </TableCell>
-                <TableCell colSpan={1}>{ivr?.PrimaryDX} I91.121 </TableCell>
+                <TableCell colSpan={1}>{ivr?.PBS_PrimaryDX}</TableCell>
                 <TableCell colSpan={1}>
                   <strong>Secondary DX</strong>
                 </TableCell>
-                <TableCell colSpan={1}>{ivr?.SecondaryDX} L98.121</TableCell>
+                <TableCell colSpan={1}>{ivr?.PBS_SecondaryDX}</TableCell>
                 <TableCell colSpan={1}>
                   <strong>Additional DXs</strong>
                 </TableCell>
                 <TableCell colSpan={4}>
-                  {ivr?.AdditionalDXs} L98.121, I91.121
+                  {ivr?.PBS_additionalDX}
                 </TableCell>
               </DarkBorderTableRow>
               <DarkBorderTableRow>
                 <TableCell colSpan={2}>
                   <strong>Estimated Patient Responsibility</strong>
                 </TableCell>
-                <TableCell colSpan={6}> - </TableCell>
+                <TableCell colSpan={6}>{ivr?.PBS_PatientResponsibility}</TableCell>
               </DarkBorderTableRow>
               <DarkBorderTableRow>
                 <TableCell colSpan={2}>
                   <strong>Primary Coverage Effective Date</strong>
                 </TableCell>
                 <TableCell colSpan={6}>
-                  {ivr?.PrimaryCoverageEffectiveDate}
+                  {ivr?.PBS_PrimaryCoverageDate}
                 </TableCell>
               </DarkBorderTableRow>
               <DarkBorderTableRow>
@@ -307,95 +307,101 @@ const Summary = forwardRef((props, ref) => {
                   <strong>Deductible</strong>
                 </TableCell>
                 <TableCell colSpan={1}>
-                  {ivr?.BenerfitDeductible1} Lots of Data Here to Present
+                  {ivr?.PBS_Deductible1}
                 </TableCell>
                 <TableCell colSpan={1}>
                   <strong>Deductible Met</strong>
                 </TableCell>
-                <TableCell colSpan={1}>{ivr?.BenerfitDeductibleMet1}</TableCell>
+                <TableCell colSpan={1}>{ivr?.PBS_DeductibleMet1}</TableCell>
                 <TableCell colSpan={1}>
                   <strong>Deductible Owed</strong>
                 </TableCell>
-                <TableCell colSpan={1}>
-                  {ivr?.BenerfitDeductibleOwed1}
+                <TableCell colSpan={3}>
+                  {ivr?.PBS_OutOfPocket1}
                 </TableCell>
-                <TableCell colSpan={1}>
+              </DarkBorderTableRow>
+              <DarkBorderTableRow>
+                <TableCell>
                   <strong>Co-insurance</strong>
                 </TableCell>
-                <TableCell colSpan={1}>{ivr?.BenefitCoinsurance1}</TableCell>
+                <TableCell>{ivr?.PBS_Coinsurance1}</TableCell>
+                <TableCell>
+                  <strong>Copay</strong>
+                </TableCell>
+                <TableCell colSpan={5}>{ivr?.PBS_CoPay1}</TableCell>
               </DarkBorderTableRow>
               <DarkBorderTableRow>
                 <TableCell colSpan={2}>
                   <strong>Secondary Coverage Effective Date</strong>
                 </TableCell>
                 <TableCell colSpan={6}>
-                  {ivr?.SecondaryCoverageEffectiveDate}
+                  {ivr?.PBS_SecondaryCoverageDate}
                 </TableCell>
               </DarkBorderTableRow>
               <DarkBorderTableRow>
                 <TableCell colSpan={1}>
                   <strong>Deductible</strong>
                 </TableCell>
-                <TableCell colSpan={1}>{ivr?.BenerfitDeductible2}</TableCell>
+                <TableCell colSpan={1}>{ivr?.PBS_Deductible2}</TableCell>
                 <TableCell colSpan={1}>
                   <strong>Deductible Met</strong>
                 </TableCell>
-                <TableCell colSpan={1}>{ivr?.BenerfitDeductibleMet2}</TableCell>
+                <TableCell colSpan={1}>{ivr?.PBS_DeductibleMet2}</TableCell>
                 <TableCell colSpan={1}>
                   <strong>Deductible Owed</strong>
                 </TableCell>
                 <TableCell colSpan={3}>
-                  {ivr?.BenerfitDeductibleOwed2}
+                  {ivr?.PBS_OutOfPocket2}
                 </TableCell>
               </DarkBorderTableRow>
               <DarkBorderTableRow>
                 <TableCell>
                   <strong>Co-insurance</strong>
                 </TableCell>
-                <TableCell>{ivr?.BenefitCoinsurance2}</TableCell>
+                <TableCell>{ivr?.PBS_Coinsurance2}</TableCell>
                 <TableCell>
                   <strong>Copay</strong>
                 </TableCell>
-                <TableCell colSpan={5}>{ivr?.BenefitCoPay2}</TableCell>
+                <TableCell colSpan={5}>{ivr?.PBS_CoPay2}</TableCell>
               </DarkBorderTableRow>
               {/* --------------------------------------------- */}
               <DarkBorderTableRow>
                 <TableCell>
                   <strong>Plan Type and Benefits</strong>
                 </TableCell>
-                <TableCell colSpan={7}>{ivr?.PlanType}</TableCell>
+                <TableCell colSpan={7}>{ivr?.PBS_PlanType}</TableCell>
               </DarkBorderTableRow>
               <DarkBorderTableRow>
                 <TableCell>
                   <strong>Denial Reason</strong>
                 </TableCell>
-                <TableCell colSpan={7}>{ivr?.DenialReason}</TableCell>
+                <TableCell colSpan={7}>{ivr?.PBS_Reason}</TableCell>
               </DarkBorderTableRow>
               <DarkBorderTableRow>
                 <TableCell>
                   <strong>Notes</strong>
                 </TableCell>
-                <TableCell colSpan={7}>{ivr?.Notes}</TableCell>
+                <TableCell colSpan={7}>{ivr?.PBS_Comment}</TableCell>
               </DarkBorderTableRow>
               <DarkBorderTableRow>
                 <TableCell>
                   <strong>Representative Name</strong>
                 </TableCell>
-                <TableCell>{ivr?.RepresentativeName}</TableCell>
+                <TableCell>{ivr?.PBS_RepName}</TableCell>
                 <TableCell>
                   <strong>Reference Number</strong>
                 </TableCell>
-                <TableCell colSpan={5}>{ivr?.ReferenceNumber}</TableCell>
+                <TableCell colSpan={5}>{ivr?.PBS_ReferenceNumber}</TableCell>
               </DarkBorderTableRow>
               <DarkBorderTableRow>
                 <TableCell>
                   <strong>Representative Email</strong>
                 </TableCell>
-                <TableCell>{ivr?.RepresentativeEmail}</TableCell>
+                <TableCell>{ivr?.PBS_RepEmail}</TableCell>
                 <TableCell>
                   <strong>Representative Phone</strong>
                 </TableCell>
-                <TableCell colSpan={5}>{ivr?.RepresentativePhone}</TableCell>
+                <TableCell colSpan={5}>{ivr?.PBS_RepPhone}</TableCell>
               </DarkBorderTableRow>
             </Table>
           </TableContainer>
@@ -478,8 +484,8 @@ const Summary = forwardRef((props, ref) => {
           onClick={handleDialogClose}
           style={{
             width: "15vw",
-            backgroundColor: "#780000",
-            color: "white",
+            backgroundColor: "#D8EEDA",
+            color: "#157069",
             marginRight: "10px",
           }}
         >
@@ -489,7 +495,7 @@ const Summary = forwardRef((props, ref) => {
           onClick={handleNext}
           style={{
             width: "15vw",
-            backgroundColor: "#1d343d",
+            backgroundColor: "#14706A",
             color: "white",
             marginLeft: "10px",
           }}
