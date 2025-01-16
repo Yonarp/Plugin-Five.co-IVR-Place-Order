@@ -1,5 +1,4 @@
 //@ts-nocheck
-
 import React, {
   useEffect,
   useRef,
@@ -131,6 +130,7 @@ const Summary = forwardRef((props, ref) => {
     //convertImageToBase64();
   }, []);
 
+  console.log("Logging Raw IVR Data from Patient Summary", ivr)
   return (
     <Container style={{ width: "100%" }}>
       {ivr !== undefined && (
@@ -226,7 +226,7 @@ const Summary = forwardRef((props, ref) => {
                 <TableCell colSpan={1}>
                   <strong>Facility Name</strong>
                 </TableCell>
-                <TableCell colSpan={3}>{ivr?.FacilityName}</TableCell>
+                <TableCell colSpan={3}>{ivr?.PBS_Facility}</TableCell>
                 <TableCell colSpan={1}>
                   <strong>Dr/Provider</strong>
                 </TableCell>
@@ -246,17 +246,17 @@ const Summary = forwardRef((props, ref) => {
                 <TableCell colSpan={1}>
                   <strong>Date of Birth</strong>
                 </TableCell>
-                <TableCell colSpan={3}></TableCell>
+                <TableCell colSpan={3}>{ivr?.DateofBirthText}</TableCell>
               </DarkBorderTableRow>
               <DarkBorderTableRow>
                 <TableCell colSpan={1}>
                   <strong>Primary Payer and ID</strong>
                 </TableCell>
-                <TableCell colSpan={3}>{payors[0]?.CompanyName}</TableCell>
+                <TableCell colSpan={3}>{ivr?.PBS_Payor1}</TableCell>
                 <TableCell colSpan={1}>
                   <strong>Secondary Payer and ID</strong>
                 </TableCell>
-                <TableCell colSpan={3}>{payors[1]?.CompanyName}</TableCell>
+                <TableCell colSpan={3}>{ivr?.PBS_Payor2}</TableCell>
               </DarkBorderTableRow>
               <DarkBorderTableRow>
                 <TableCell colSpan={1}>
@@ -276,16 +276,16 @@ const Summary = forwardRef((props, ref) => {
                 <TableCell colSpan={1}>
                   <strong>Primary DX</strong>
                 </TableCell>
-                <TableCell colSpan={1}>{ivr?.PBS_PrimaryDX}</TableCell>
+                <TableCell colSpan={1}>{ivr?.PBS_PrimaryDx}</TableCell>
                 <TableCell colSpan={1}>
                   <strong>Secondary DX</strong>
                 </TableCell>
-                <TableCell colSpan={1}>{ivr?.PBS_SecondaryDX}</TableCell>
+                <TableCell colSpan={1}>{ivr?.PBS_SecondaryDx}</TableCell>
                 <TableCell colSpan={1}>
                   <strong>Additional DXs</strong>
                 </TableCell>
                 <TableCell colSpan={4}>
-                  {ivr?.PBS_additionalDX}
+                  {ivr?.PBS_additionalDx}
                 </TableCell>
               </DarkBorderTableRow>
               <DarkBorderTableRow>
@@ -335,7 +335,7 @@ const Summary = forwardRef((props, ref) => {
                   <strong>Secondary Coverage Effective Date</strong>
                 </TableCell>
                 <TableCell colSpan={6}>
-                  {ivr?.PBS_SecondaryCoverageDate}
+                  {ivr?.PBS_secondaryConverageDate}
                 </TableCell>
               </DarkBorderTableRow>
               <DarkBorderTableRow>

@@ -195,7 +195,22 @@ const CustomField = (props: CustomFieldProps) => {
   };
 
   const handleDialogClose = () => {
+    setEmail(null);
+    setLoading(false);
+    setComment("");
+    setServiceDate("");
+    setProductList([]);
+    setTotalAmount(0);
+    setSelectedParentProduct("");
+    setOrderProducts([{ product: "", price: 0, qty: 1, discount: 0, amount: 0 }]);
+    setPage(1);
+    setSelectedAddress("");
+    setAddressName(null);
+    setFullAddress(null);
+    setPayors([]);
+    setDiscountPercentages({});
     setDialogOpen(false);
+  
   };
 
   const handleEmailDialogOpen = () => {
@@ -256,6 +271,7 @@ const CustomField = (props: CustomFieldProps) => {
           newOrderProducts[index].price * value * (1 - discount);
       }
     }
+
     setOrderProducts(newOrderProducts);
   };
 
@@ -282,6 +298,13 @@ const CustomField = (props: CustomFieldProps) => {
   const handleComment = (event) => {
     setComment(event.target.value);
   };
+
+  console.log("Logging Order Products",orderProducts)
+  console.log("Logging Product List",productList)
+
+
+  // When Service Date goes to next quarter we use FutureBillRate as the field to update the price
+
 
   const handleDateChange = (newDate) => {
     setServiceDate(newDate);
@@ -387,7 +410,7 @@ const CustomField = (props: CustomFieldProps) => {
                     <TableCell component="th" scope="row">
                       <strong>Wound Size (CM²):</strong>
                     </TableCell>
-                    <TableCell>{data?.ivr?.WoundSize}</TableCell>
+                    <TableCell>{data?.ivr?.WoundSizeCalc}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell component="th" scope="row">
@@ -695,6 +718,7 @@ const CustomField = (props: CustomFieldProps) => {
           <DialogContent
             style={{ maxWidth: "100%", overflowX: "hidden", padding: "10px" }}
           >
+
             <Summary
               ivr={data?.ivr}
               ref={summaryRef}
