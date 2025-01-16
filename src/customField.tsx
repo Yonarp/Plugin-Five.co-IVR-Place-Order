@@ -243,26 +243,121 @@ const CustomField = (props: CustomFieldProps) => {
     }
   };
 
+
+  function getQuarter(date) {
+    const month = date.getMonth() + 1; // 1–12
+    if (month >= 1 && month <= 3) return 1;
+    if (month >= 4 && month <= 6) return 2;
+    if (month >= 7 && month <= 9) return 3;
+    return 4;
+  }
+  
+  /**
+   * Checks if the given serviceDate (string) is in the next quarter or beyond
+   * relative to "today". 
+   */
+  function isDateInNextOrFutureQuarter(serviceDateStr) {
+    if (!serviceDateStr) return false; // If no date chosen, treat as false
+  
+    const today = new Date();
+    const serviceDate = new Date(serviceDateStr);
+  
+ 
+    const currentYear = today.getFullYear();
+    const currentQuarter = getQuarter(today);
+  
+ 
+    let nextQuarter = currentQuarter + 1;
+    let nextYear = currentYear;
+    if (nextQuarter > 4) {
+      nextQuarter = 1;
+      nextYear += 1;
+    }
+  
+    // The service date's year/quarter
+    const serviceYear = serviceDate.getFullYear();
+    const serviceQuarter = getQuarter(serviceDate);
+  
+    // 1) If service date's year is greater than nextYear => definitely "next or future"
+    // 2) If service date's year is less than nextYear => definitely NOT "next quarter or beyond"
+    // 3) If same year as nextYear => check if quarter >= nextQuarter
+    //    If serviceYear > currentYear but < nextYear, it means we're already into next year 
+    //    (which could be Q1 but might be beyond).
+    
+    // first check if serviceYear > currentYear
+    if (serviceYear > currentYear) {
+      // if serviceYear is bigger than nextYear, definitely beyond
+      if (serviceYear > nextYear) return true;
+  
+      // if serviceYear == nextYear, check quarters
+      if (serviceYear === nextYear) {
+        return serviceQuarter >= nextQuarter; 
+      } else {
+        // If the serviceYear is exactly currentYear + 1, that *is* nextYear
+        // This case is covered above, just leaving it for clarity
+        return true;
+      }
+    } else {
+      // if serviceYear == currentYear, we have to see if the quarter is beyond the nextQuarter 
+      // (but that can only happen if the service date is in Q3 or Q4 and nextQuarter is Q2, for example).
+      // It's simpler to compare if the service date is >= the start of "nextQuarter" in the current year
+      // But let's keep it straightforward:
+      // if the serviceYear is the same as currentYear, it cannot be *beyond* next quarter, 
+      // unless nextQuarter is Q4 and the user picks Q4 or something. 
+      // We'll do a direct numeric check:
+      
+      // The numeric "rank" of the service quarter, e.g. Q4 = 4, Q2 = 2
+      // If serviceQuarter >= nextQuarter, that means it's in the next or future quarter within the same year
+      if (serviceYear === currentYear) {
+        return serviceQuarter >= nextQuarter;
+      }
+    }
+    // default
+    return false;
+  }
+
+
+
+
+
   const handleProductChange = (index, field, value) => {
     const selectedProduct = productList.find(
       (product) => product.___PRD === value
     );
     const newOrderProducts = [...orderProducts];
+  
     if (field === "product" && selectedProduct) {
+      
+      const useFutureRate = isDateInNextOrFutureQuarter(serviceDate);
+  
+ 
+      const price = useFutureRate
+        ? selectedProduct.FutureBillRate
+        : selectedProduct.BillRate;
+
+      if(price === null || price === undefined || price === ""){
+        price = 0; 
+      }
+  
+   
       const brand = data?.product?.Brand || "Unknown";
       const discount = discountPercentages[brand] || 0;
-      const price = selectedProduct.BillRate;
-      const qty = newOrderProducts[index].qty;
+  
+   
+      const qty = newOrderProducts[index].qty || 1;
+  
+    
       const amount = price * qty * (1 - discount);
-
+  
       newOrderProducts[index] = {
         product: selectedProduct.___PRD,
-        price: price,
-        qty: qty,
-        discount: discount,
-        amount: amount,
+        price,
+        qty,
+        discount,
+        amount,
       };
     } else {
+      // If the user changes quantity or some other field
       newOrderProducts[index][field] = value;
       if (field === "qty") {
         const brand = data?.product?.Brand || "Unknown";
@@ -271,7 +366,7 @@ const CustomField = (props: CustomFieldProps) => {
           newOrderProducts[index].price * value * (1 - discount);
       }
     }
-
+  
     setOrderProducts(newOrderProducts);
   };
 
@@ -307,7 +402,43 @@ const CustomField = (props: CustomFieldProps) => {
 
 
   const handleDateChange = (newDate) => {
+    console.log("handle ")
     setServiceDate(newDate);
+
+    const isFuture = isDateInNextOrFutureQuarter(newDate);
+
+    const updatedProducts = orderProducts.map((op) => {
+      if(!op.product){
+        return op;
+      }
+
+      const matchedProduct = productList.find((p) => {
+       return  p.___PRD === op.product
+      })
+
+      if(!matchedProduct) return op
+
+      const price = isFuture ? matchedProduct.FutureBillRate : matchedProduct.BillRate
+
+      // Future Bill Rate might come undefined from the API
+      if(price === null || price === undefined || price === "") {
+        price = 0
+      }
+
+      const brand = data?.product?.Brand || "Unknown";
+      const discount = discountPercentages[brand] || 0;
+      const newAmount = price * op.qty * (1 - discount);
+
+      return {
+        ...op,
+        price,
+        amount: newAmount
+      }
+
+    })
+
+    setOrderProducts(updatedProducts)
+
   };
 
   useEffect(() => {
@@ -729,6 +860,7 @@ const CustomField = (props: CustomFieldProps) => {
               five={five}
               patient={data?.patient}
             />
+            
           </DialogContent>
         )}
         <Dialog open={emailDialogOpen} onClose={handleEmailDialogClose}>
