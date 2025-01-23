@@ -377,6 +377,8 @@ const CustomField = (props: CustomFieldProps) => {
     setSelectedAddress(address.ADD);
     setAddressName(address.Name);
     setFullAddress(address.address);
+    console.log("Loggging address from handleAddress Change", address)
+    setMac(getMacValue(address.address?.AddressState))
   };
 
   const handleDelete = (index) => {
@@ -445,6 +447,8 @@ const CustomField = (props: CustomFieldProps) => {
 
   const getMacValue = (state) => {
 
+    console.log("Loggign the state from getMacValue:", state);
+
     const macMapping = {
       "Noridian": ["AK", "WA", "OR", "ID", "MT", "WY", "ND", "SD", "UT", "AZ", "CA", "NV", "HI"],
       "Novitas": ["CO", "NM", "TX", "OK", "AR", "LA", "MS", "NJ", "PA", "DE", "MD", "DC"],
@@ -468,9 +472,7 @@ const CustomField = (props: CustomFieldProps) => {
 
   useEffect(() => {
     setTotalAmount(getTotalAmount());
-
-    setMac(getMacValue(fullAddress?.ShippingAddressState))
-
+    setMac(getMacValue(fullAddress?.AddressState))
   }, [orderProducts, fullAddress]);
   console.log("The Mac Value is: ", mac)
 
@@ -609,7 +611,7 @@ const CustomField = (props: CustomFieldProps) => {
                     <TableCell component="th" scope="row">
                       <strong>MAC:</strong>
                     </TableCell>
-                    <TableCell>{data?.account?.MacValue}</TableCell>
+                    <TableCell>{mac}</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
