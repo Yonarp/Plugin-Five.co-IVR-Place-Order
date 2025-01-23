@@ -58,6 +58,7 @@ const CustomField = (props: CustomFieldProps) => {
   const [fullAddress, setFullAddress] = useState(null);
   const [payors, setPayors] = useState([]);
   const [discountPercentages, setDiscountPercentages] = useState({});
+  const [mac, setMac] = useState("")
 
   const summaryRef = useRef();
 
@@ -316,6 +317,7 @@ const CustomField = (props: CustomFieldProps) => {
     return false;
   }
 
+ 
 
 
 
@@ -394,15 +396,14 @@ const CustomField = (props: CustomFieldProps) => {
     setComment(event.target.value);
   };
 
-  console.log("Logging Order Products",orderProducts)
-  console.log("Logging Product List",productList)
+ 
 
 
   // When Service Date goes to next quarter we use FutureBillRate as the field to update the price
 
 
   const handleDateChange = (newDate) => {
-    console.log("handle ")
+
     setServiceDate(newDate);
 
     const isFuture = isDateInNextOrFutureQuarter(newDate);
@@ -441,9 +442,37 @@ const CustomField = (props: CustomFieldProps) => {
 
   };
 
+
+  const getMacValue = (state) => {
+
+    const macMapping = {
+      "Noridian": ["AK", "WA", "OR", "ID", "MT", "WY", "ND", "SD", "UT", "AZ", "CA", "NV", "HI"],
+      "Novitas": ["CO", "NM", "TX", "OK", "AR", "LA", "MS", "NJ", "PA", "DE", "MD", "DC"],
+      "WPS": ["NE", "KS", "IA", "MO", "MI", "IN"],
+      "NGS": ["MN", "WI", "IL", "ME", "VT", "NH", "MA", "CT", "RI", "NY"],
+      "CGS": ["OH", "KY"],
+      "Palmetto": ["WV", "VA", "NC", "SC", "TN", "AL", "GA"],
+      "FCSO": ["FL"]
+  };
+
+  for(const [mac, states] of Object.entries(macMapping)) {
+    if(states.includes(state)){
+      return mac
+    }
+  }
+
+  return "Unknown"
+
+
+  }
+
   useEffect(() => {
     setTotalAmount(getTotalAmount());
-  }, [orderProducts]);
+
+    setMac(getMacValue(fullAddress?.ShippingAddressState))
+
+  }, [orderProducts, fullAddress]);
+  console.log("The Mac Value is: ", mac)
 
   if (loading) {
     return (

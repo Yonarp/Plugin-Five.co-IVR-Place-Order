@@ -130,7 +130,7 @@ const Summary = forwardRef((props, ref) => {
     //convertImageToBase64();
   }, []);
 
-  console.log("Logging Raw IVR Data from Patient Summary", ivr)
+
   return (
     <Container style={{ width: "100%" }}>
       {ivr !== undefined && (
