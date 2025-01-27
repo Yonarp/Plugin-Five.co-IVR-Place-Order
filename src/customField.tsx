@@ -690,7 +690,17 @@ const CustomField = (props: CustomFieldProps) => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {orderProducts.map((orderProduct, index) => (
+              {orderProducts.length == 0 ? 
+                <TableRow key={index}>
+                  <TableCell colSpan={6} align="center">
+                    <Typography color="error" sx={{ flex: 1 }} >
+                      No record found! Click the '+' button to add a new record.
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+                : null
+              }
+              {orderProducts.map((orderProduct, index) => (
                   <TableRow key={index}>
                     <TableCell>
                       <Select
