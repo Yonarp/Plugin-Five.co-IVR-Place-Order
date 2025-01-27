@@ -809,8 +809,7 @@ const CustomField = (props: CustomFieldProps) => {
               variant="outlined"
               placeholder="Comments..."
             />
-
-            {data?.account?.FacilityType === "SNF" && (
+            {data?.account?.FacilityType === "SNF" ? (
               <Box mt={5}>
                 <Typography
                   variant="body1"
@@ -863,7 +862,18 @@ const CustomField = (props: CustomFieldProps) => {
                   label="I agree to the disclaimer"
                 />
               </Box>
-            )}
+            ) : 
+              <Box mt={1}>
+                <Typography
+                  variant="caption"
+                  display="block"
+                  gutterBottom
+                  style={{ fontSize: "0.65rem" }}
+                >
+                  Disclaimer: Please note that all prices are estimates and may vary based on final assessment or additional factors.
+                </Typography>
+              </Box>
+            }
 
             <Box display="flex" justifyContent="space-between" mt={2}>
               <Button
