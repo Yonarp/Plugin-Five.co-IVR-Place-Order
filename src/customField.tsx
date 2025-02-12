@@ -700,7 +700,17 @@ const CustomField = (props: CustomFieldProps) => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {orderProducts.map((orderProduct, index) => (
+              {orderProducts.length == 0 ? 
+                <TableRow key={index}>
+                  <TableCell colSpan={6} align="center">
+                    <Typography color="error" sx={{ flex: 1 }} >
+                      No record found! Click the '+' button to add a new record.
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+                : null
+              }
+              {orderProducts.map((orderProduct, index) => (
                   <TableRow key={index}>
                     <TableCell>
                       <Select
@@ -809,8 +819,7 @@ const CustomField = (props: CustomFieldProps) => {
               variant="outlined"
               placeholder="Comments..."
             />
-
-            {data?.account?.FacilityType === "SNF" && (
+            {data?.account?.FacilityType === "SNF" ? (
               <Box mt={5}>
                 <Typography
                   variant="body1"
@@ -863,7 +872,18 @@ const CustomField = (props: CustomFieldProps) => {
                   label="I agree to the disclaimer"
                 />
               </Box>
-            )}
+            ) : 
+              <Box mt={1}>
+                <Typography
+                  variant="caption"
+                  display="block"
+                  gutterBottom
+                  style={{ fontSize: "0.65rem" }}
+                >
+                  Disclaimer: Please note that all prices are estimates and may vary based on final assessment or additional factors.
+                </Typography>
+              </Box>
+            }
 
             <Box display="flex" justifyContent="space-between" mt={2}>
               <Button
