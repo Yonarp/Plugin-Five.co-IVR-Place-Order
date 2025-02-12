@@ -127,6 +127,16 @@ const CustomField = (props: CustomFieldProps) => {
     five.message("Request Sent");
   };
 
+
+  const filterProductList  = (list) => {
+    const newList = list.filter((item) => (
+      item._isActive !== null)
+    )
+    console.log("logging new list to check what returning ",newList)
+    return newList;
+  }
+ 
+ 
   const handleDialogOpen = () => {
     setDialogOpen(true);
     setLoading(true);
@@ -143,14 +153,14 @@ const CustomField = (props: CustomFieldProps) => {
           const response = JSON.parse(result.serverResponse.results);
           if (response.product) {
             setSelectedParentProduct("product");
-            setProductList(response.productList || []);
+            setProductList(filterProductList(response.productList));
           } else if (response.product2) {
             setSelectedParentProduct("product2");
-            setProductList(response.productList2 || []);
+            setProductList(filterProductList(response.productList2));
           }
-
+          
           setData(response);
-          setProductList(response.productList);
+          setProductList(filterProductList(response.productList));
           const primaryAddress = response.address.find(
             (addr) => addr._isPrimary === 1
           );
@@ -238,9 +248,9 @@ const CustomField = (props: CustomFieldProps) => {
     // Clear selected order products and update productList with the sub-products of the selected parent product
     setOrderProducts([]);
     if (selectedProduct === "product") {
-      setProductList(data.productList || []);
+      setProductList(filterProductList(data.productList));
     } else if (selectedProduct === "product2") {
-      setProductList(data.productList2 || []);
+      setProductList(filterProductList(data.productList2));
     }
   };
 
@@ -377,7 +387,7 @@ const CustomField = (props: CustomFieldProps) => {
     setSelectedAddress(address.ADD);
     setAddressName(address.Name);
     setFullAddress(address.address);
-    console.log("Loggging address from handleAddress Change", address)
+    
     setMac(getMacValue(address.address?.AddressState))
   };
 
@@ -447,7 +457,7 @@ const CustomField = (props: CustomFieldProps) => {
 
   const getMacValue = (state) => {
 
-    console.log("Loggign the state from getMacValue:", state);
+
 
     const macMapping = {
       "Noridian": ["AK", "WA", "OR", "ID", "MT", "WY", "ND", "SD", "UT", "AZ", "CA", "NV", "HI"],
