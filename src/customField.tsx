@@ -1,7 +1,6 @@
 //@ts-nocheck
 import React, { useEffect, useState, useRef } from "react";
 
-//@ts-ignore
 import {
   Box,
   CircularProgress,
@@ -26,6 +25,7 @@ import {
   TextField,
   TableContainer,
   FormControlLabel,
+  Alert,
   Paper,
 } from "@mui/material";
 
@@ -35,16 +35,16 @@ import Summary from "./Components/Summary";
 FiveInitialize();
 
 const CustomField = (props: CustomFieldProps) => {
-  //@ts-ignore
-  const { theme, value, onValueUpdated, variant, five, selectedRecord } = props;
+  const { five, selectedRecord } = props;
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [orders, setOrders] = useState();
+  const [orderLimit, setOrderLimit] = useState<boolean>(false);
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
   const [email, setEmail] = useState(null);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [comment, setComment] = useState("");
   const [serviceDate, setServiceDate] = useState("");
-  //@ts-ignore
   const [productList, setProductList] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
   const [selectedParentProduct, setSelectedParentProduct] = useState("");
@@ -58,7 +58,7 @@ const CustomField = (props: CustomFieldProps) => {
   const [fullAddress, setFullAddress] = useState(null);
   const [payors, setPayors] = useState([]);
   const [discountPercentages, setDiscountPercentages] = useState({});
-  const [mac, setMac] = useState("")
+  const [mac, setMac] = useState("");
 
   const summaryRef = useRef();
 
@@ -75,10 +75,12 @@ const CustomField = (props: CustomFieldProps) => {
   const handleSubmit = async () => {
     const servicedate = new Date(serviceDate || data?.ivr?.Date);
     const today = new Date();
-  
-    if (servicedate<= today) {
-      five.message("Date of Service cannot be earlier than or equal to today's date.");
-        return;
+
+    if (servicedate <= today) {
+      five.message(
+        "Date of Service cannot be earlier than or equal to today's date."
+      );
+      return;
     }
 
     const order = {
@@ -92,7 +94,7 @@ const CustomField = (props: CustomFieldProps) => {
       products: orderProducts,
       comment: comment,
       fullAddress: fullAddress,
-      DateService: serviceDate
+      DateService: serviceDate,
     };
 
     await five.executeFunction(
@@ -102,7 +104,7 @@ const CustomField = (props: CustomFieldProps) => {
       null,
       null,
       null,
-      (result) => {}
+      () => {}
     );
     handleDialogClose();
   };
@@ -120,28 +122,47 @@ const CustomField = (props: CustomFieldProps) => {
       null,
       null,
       null,
-      (result) => {}
+      () => {}
     );
 
     handleEmailDialogClose();
     five.message("Request Sent");
   };
 
+  const filterProductList = (list) => {
+    const newList = list.filter((item) => item._isActive !== null);
 
-  const filterProductList  = (list) => {
-    const newList = list.filter((item) => (
-      item._isActive !== null)
-    )
-    console.log("logging new list to check what returning ",newList)
     return newList;
-  }
- 
- 
+  };
+
   const handleDialogOpen = () => {
     setDialogOpen(true);
     setLoading(true);
 
     const fetchData = async () => {
+      const orderObj = {
+        IVRKey: selectedRecord.data.IVR,
+      };
+
+      await five.executeFunction(
+        "getOrders",
+        //@ts-ignore
+        orderObj,
+        null,
+        null,
+        null,
+        (result) => {
+          const response = JSON.parse(result?.serverResponse?.results);
+          console.log("Logging response to check order", response);
+          const orders = response.response.value;
+          setOrders(orders);
+
+          if (orders.length > 10) {
+            setOrderLimit(true);
+          }
+        }
+      );
+
       await five.executeFunction(
         "getIVRDetails",
         //@ts-ignore
@@ -158,7 +179,7 @@ const CustomField = (props: CustomFieldProps) => {
             setSelectedParentProduct("product2");
             setProductList(filterProductList(response.productList2));
           }
-          
+
           setData(response);
           setProductList(filterProductList(response.productList));
           const primaryAddress = response.address.find(
@@ -180,11 +201,12 @@ const CustomField = (props: CustomFieldProps) => {
           ].filter(Boolean);
 
           const payorPromises = payorKeys.map((payorKey) => {
-            const payorObject = { PayKey: payorKey };
+            const payorMap = new Map<string, any>();
+            payorMap.set("PayKey", payorKey);
             return new Promise((resolve) => {
               five.executeFunction(
                 "getPatientInsurance",
-                payorObject,
+                payorMap,
                 null,
                 null,
                 null,
@@ -202,6 +224,7 @@ const CustomField = (props: CustomFieldProps) => {
         }
       );
     };
+
     fetchData();
   };
 
@@ -213,7 +236,9 @@ const CustomField = (props: CustomFieldProps) => {
     setProductList([]);
     setTotalAmount(0);
     setSelectedParentProduct("");
-    setOrderProducts([{ product: "", price: 0, qty: 1, discount: 0, amount: 0 }]);
+    setOrderProducts([
+      { product: "", price: 0, qty: 1, discount: 0, amount: 0 },
+    ]);
     setPage(1);
     setSelectedAddress("");
     setAddressName(null);
@@ -221,7 +246,6 @@ const CustomField = (props: CustomFieldProps) => {
     setPayors([]);
     setDiscountPercentages({});
     setDialogOpen(false);
-  
   };
 
   const handleEmailDialogOpen = () => {
@@ -254,7 +278,6 @@ const CustomField = (props: CustomFieldProps) => {
     }
   };
 
-
   function getQuarter(date) {
     const month = date.getMonth() + 1; // 1–12
     if (month >= 1 && month <= 3) return 1;
@@ -262,61 +285,57 @@ const CustomField = (props: CustomFieldProps) => {
     if (month >= 7 && month <= 9) return 3;
     return 4;
   }
-  
+
   /**
    * Checks if the given serviceDate (string) is in the next quarter or beyond
-   * relative to "today". 
+   * relative to "today".
    */
   function isDateInNextOrFutureQuarter(serviceDateStr) {
     if (!serviceDateStr) return false; // If no date chosen, treat as false
-  
+
     const today = new Date();
     const serviceDate = new Date(serviceDateStr);
-  
- 
+
     const currentYear = today.getFullYear();
     const currentQuarter = getQuarter(today);
-  
- 
+
     let nextQuarter = currentQuarter + 1;
     let nextYear = currentYear;
     if (nextQuarter > 4) {
       nextQuarter = 1;
       nextYear += 1;
     }
-  
+
     // The service date's year/quarter
     const serviceYear = serviceDate.getFullYear();
     const serviceQuarter = getQuarter(serviceDate);
-  
+
     // 1) If service date's year is greater than nextYear => definitely "next or future"
     // 2) If service date's year is less than nextYear => definitely NOT "next quarter or beyond"
     // 3) If same year as nextYear => check if quarter >= nextQuarter
-    //    If serviceYear > currentYear but < nextYear, it means we're already into next year 
+    //    If serviceYear > currentYear but < nextYear, it means we're already into next year
     //    (which could be Q1 but might be beyond).
-    
+
     // first check if serviceYear > currentYear
     if (serviceYear > currentYear) {
       // if serviceYear is bigger than nextYear, definitely beyond
       if (serviceYear > nextYear) return true;
-  
+
       // if serviceYear == nextYear, check quarters
       if (serviceYear === nextYear) {
-        return serviceQuarter >= nextQuarter; 
+        return serviceQuarter >= nextQuarter;
       } else {
         // If the serviceYear is exactly currentYear + 1, that *is* nextYear
         // This case is covered above, just leaving it for clarity
         return true;
       }
     } else {
-      // if serviceYear == currentYear, we have to see if the quarter is beyond the nextQuarter 
+      // if serviceYear == currentYear, we have to see if the quarter is beyond the nextQuarter
       // (but that can only happen if the service date is in Q3 or Q4 and nextQuarter is Q2, for example).
       // It's simpler to compare if the service date is >= the start of "nextQuarter" in the current year
-      // But let's keep it straightforward:
-      // if the serviceYear is the same as currentYear, it cannot be *beyond* next quarter, 
-      // unless nextQuarter is Q4 and the user picks Q4 or something. 
-      // We'll do a direct numeric check:
-      
+      // if the serviceYear is the same as currentYear, it cannot be *beyond* next quarter,
+      // unless nextQuarter is Q4 and the user picks Q4 or something.
+
       // The numeric "rank" of the service quarter, e.g. Q4 = 4, Q2 = 2
       // If serviceQuarter >= nextQuarter, that means it's in the next or future quarter within the same year
       if (serviceYear === currentYear) {
@@ -327,40 +346,30 @@ const CustomField = (props: CustomFieldProps) => {
     return false;
   }
 
- 
-
-
-
-
   const handleProductChange = (index, field, value) => {
     const selectedProduct = productList.find(
       (product) => product.___PRD === value
     );
     const newOrderProducts = [...orderProducts];
-  
+
     if (field === "product" && selectedProduct) {
-      
       const useFutureRate = isDateInNextOrFutureQuarter(serviceDate);
-  
- 
-      const price = useFutureRate
+
+      let price = useFutureRate
         ? selectedProduct.FutureBillRate
         : selectedProduct.BillRate;
 
-      if(price === null || price === undefined || price === ""){
-        price = 0; 
+      if (price === null || price === undefined || price === "") {
+        price = 0;
       }
-  
-   
+
       const brand = data?.product?.Brand || "Unknown";
       const discount = discountPercentages[brand] || 0;
-  
-   
+
       const qty = newOrderProducts[index].qty || 1;
-  
-    
+
       const amount = price * qty * (1 - discount);
-  
+
       newOrderProducts[index] = {
         product: selectedProduct.___PRD,
         price,
@@ -378,7 +387,7 @@ const CustomField = (props: CustomFieldProps) => {
           newOrderProducts[index].price * value * (1 - discount);
       }
     }
-  
+
     setOrderProducts(newOrderProducts);
   };
 
@@ -387,8 +396,7 @@ const CustomField = (props: CustomFieldProps) => {
     setSelectedAddress(address.ADD);
     setAddressName(address.Name);
     setFullAddress(address.address);
-    
-    setMac(getMacValue(address.address?.AddressState))
+    setMac(getMacValue(address.address?.AddressState));
   };
 
   const handleDelete = (index) => {
@@ -408,34 +416,31 @@ const CustomField = (props: CustomFieldProps) => {
     setComment(event.target.value);
   };
 
- 
-
-
   // When Service Date goes to next quarter we use FutureBillRate as the field to update the price
 
-
   const handleDateChange = (newDate) => {
-
     setServiceDate(newDate);
 
     const isFuture = isDateInNextOrFutureQuarter(newDate);
 
     const updatedProducts = orderProducts.map((op) => {
-      if(!op.product){
+      if (!op.product) {
         return op;
       }
 
       const matchedProduct = productList.find((p) => {
-       return  p.___PRD === op.product
-      })
+        return p.___PRD === op.product;
+      });
 
-      if(!matchedProduct) return op
+      if (!matchedProduct) return op;
 
-      const price = isFuture ? matchedProduct.FutureBillRate : matchedProduct.BillRate
+      let price = isFuture
+        ? matchedProduct.FutureBillRate
+        : matchedProduct.BillRate;
 
       // Future Bill Rate might come undefined from the API
-      if(price === null || price === undefined || price === "") {
-        price = 0
+      if (price === null || price === undefined || price === "") {
+        price = 0;
       }
 
       const brand = data?.product?.Brand || "Unknown";
@@ -445,46 +450,64 @@ const CustomField = (props: CustomFieldProps) => {
       return {
         ...op,
         price,
-        amount: newAmount
-      }
+        amount: newAmount,
+      };
+    });
 
-    })
-
-    setOrderProducts(updatedProducts)
-
+    setOrderProducts(updatedProducts);
   };
-
 
   const getMacValue = (state) => {
-
-
-
     const macMapping = {
-      "Noridian": ["AK", "WA", "OR", "ID", "MT", "WY", "ND", "SD", "UT", "AZ", "CA", "NV", "HI"],
-      "Novitas": ["CO", "NM", "TX", "OK", "AR", "LA", "MS", "NJ", "PA", "DE", "MD", "DC"],
-      "WPS": ["NE", "KS", "IA", "MO", "MI", "IN"],
-      "NGS": ["MN", "WI", "IL", "ME", "VT", "NH", "MA", "CT", "RI", "NY"],
-      "CGS": ["OH", "KY"],
-      "Palmetto": ["WV", "VA", "NC", "SC", "TN", "AL", "GA"],
-      "FCSO": ["FL"]
-  };
+      Noridian: [
+        "AK",
+        "WA",
+        "OR",
+        "ID",
+        "MT",
+        "WY",
+        "ND",
+        "SD",
+        "UT",
+        "AZ",
+        "CA",
+        "NV",
+        "HI",
+      ],
+      Novitas: [
+        "CO",
+        "NM",
+        "TX",
+        "OK",
+        "AR",
+        "LA",
+        "MS",
+        "NJ",
+        "PA",
+        "DE",
+        "MD",
+        "DC",
+      ],
+      WPS: ["NE", "KS", "IA", "MO", "MI", "IN"],
+      NGS: ["MN", "WI", "IL", "ME", "VT", "NH", "MA", "CT", "RI", "NY"],
+      CGS: ["OH", "KY"],
+      Palmetto: ["WV", "VA", "NC", "SC", "TN", "AL", "GA"],
+      FCSO: ["FL"],
+    };
 
-  for(const [mac, states] of Object.entries(macMapping)) {
-    if(states.includes(state)){
-      return mac
+    for (const [mac, states] of Object.entries(macMapping)) {
+      if (states.includes(state)) {
+        return mac;
+      }
     }
-  }
 
-  return "Unknown"
-
-
-  }
+    return "Unknown";
+  };
 
   useEffect(() => {
     setTotalAmount(getTotalAmount());
-    setMac(getMacValue(fullAddress?.AddressState))
-  }, [orderProducts, fullAddress]);
-  console.log("The Mac Value is: ", mac)
+    setMac(getMacValue(fullAddress?.AddressState));
+  }, [orderProducts, fullAddress, orderLimit]);
 
   if (loading) {
     return (
@@ -505,6 +528,7 @@ const CustomField = (props: CustomFieldProps) => {
   return (
     <Box>
       <Button
+        id="place-order-btn"
         fullWidth
         onClick={handleDialogOpen}
         style={{
@@ -515,6 +539,7 @@ const CustomField = (props: CustomFieldProps) => {
         Place Order
       </Button>
       <Dialog
+        id="order-dialog"
         open={dialogOpen}
         onClose={handleDialogClose}
         fullWidth
@@ -536,6 +561,7 @@ const CustomField = (props: CustomFieldProps) => {
           >
             <Typography>Place Order</Typography>
             <Button
+              id="download-pdf-btn"
               onClick={() => summaryRef.current.downloadPdf()}
               style={{ background: "none", color: "white" }}
             >
@@ -547,6 +573,28 @@ const CustomField = (props: CustomFieldProps) => {
           <DialogContent
             style={{ maxWidth: "100%", overflowX: "hidden", padding: "10px" }}
           >
+            {orderLimit && (
+              <Box display="flex" flexDirection="row" justifyContent="space-between" alignItems="center" sx={{
+                width: "100%"
+              }}  >
+                <Alert severity="warning" sx={{ mt: 2, fontWeight: "bold", flex: 2 }}>
+                  {orders.length} orders have previously been submitted for this
+                  IVR. Are you sure you would like to continue?
+                </Alert>
+                <Button
+                  sx={{
+                    background: "#14706A",
+                    color: "white",
+                    marginTop: "10px",
+                    marginLeft: "5px"
+                  }}
+                  onClick={() => setOrderLimit(false)}
+                >
+                  Yes
+                </Button>
+              </Box>
+            )}
+
             <Typography variant="h6" mt={5}>
               Details:{" "}
             </Typography>
@@ -559,19 +607,18 @@ const CustomField = (props: CustomFieldProps) => {
                     </TableCell>
                     <TableCell>
                       <Select
+                        id="parent-product-select"
                         value={selectedParentProduct}
                         onChange={handleParentProductChange}
                         fullWidth
                       >
                         {data?.product && (
-                          <MenuItem value="product">
-                            {data?.product?.Brand +
-                              "-" +
-                              data?.product?.QCode}
+                          <MenuItem id="product1-option" value="product">
+                            {data?.product?.Brand + "-" + data?.product?.QCode}
                           </MenuItem>
                         )}
                         {data?.product2 && (
-                          <MenuItem value="product2">
+                          <MenuItem id="product2-option" value="product2">
                             {data?.product2?.Brand +
                               "-" +
                               data?.product2?.QCode}
@@ -604,6 +651,7 @@ const CustomField = (props: CustomFieldProps) => {
                     </TableCell>
                     <TableCell>
                       <TextField
+                        id="service-date-input"
                         type="date"
                         defaultValue={data?.ivr?.Date}
                         onChange={(e) => handleDateChange(e.target.value)}
@@ -640,6 +688,7 @@ const CustomField = (props: CustomFieldProps) => {
                     >
                       <strong>Shipping Address:</strong>
                       <Select
+                        id="shipping-address-select"
                         value={JSON.stringify({
                           address: fullAddress,
                           ADD: selectedAddress,
@@ -650,8 +699,9 @@ const CustomField = (props: CustomFieldProps) => {
                         fullWidth
                         style={{ marginTop: "8px" }}
                       >
-                        {data?.address.map((address) => (
+                        {data?.address.map((address, index) => (
                           <MenuItem
+                            id={`address-option-${index}`}
                             key={address.___ADD}
                             value={JSON.stringify({
                               address: address,
@@ -661,9 +711,7 @@ const CustomField = (props: CustomFieldProps) => {
                           >
                             {address.AddressName}
                             <br />
-                            {address.AddressStreet +
-                              " " +
-                              address.AddressCity}
+                            {address.AddressStreet + " " + address.AddressCity}
                           </MenuItem>
                         ))}
                       </Select>
@@ -688,7 +736,7 @@ const CustomField = (props: CustomFieldProps) => {
             <Typography variant="h6" mt={5}>
               Please Select The Desired Products For The Order
             </Typography>
-            <Table>
+            <Table id="products-table">
               <TableHead>
                 <TableRow>
                   <TableCell>Product</TableCell>
@@ -700,20 +748,21 @@ const CustomField = (props: CustomFieldProps) => {
                 </TableRow>
               </TableHead>
               <TableBody>
-              {orderProducts.length == 0 ? 
-                <TableRow key={index}>
-                  <TableCell colSpan={6} align="center">
-                    <Typography color="error" sx={{ flex: 1 }} >
-                      No record found! Click the '+' button to add a new record.
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-                : null
-              }
-              {orderProducts.map((orderProduct, index) => (
-                  <TableRow key={index}>
+                {orderProducts.length == 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} align="center">
+                      <Typography color="error" sx={{ flex: 1 }}>
+                        No record found! Click the '+' button to add a new
+                        record.
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                ) : null}
+                {orderProducts.map((orderProduct, index) => (
+                  <TableRow id={`product-row-${index}`} key={index}>
                     <TableCell>
                       <Select
+                        id={`product-select-${index}`}
                         value={orderProduct.product}
                         onChange={(e) =>
                           handleProductChange(index, "product", e.target.value)
@@ -722,8 +771,12 @@ const CustomField = (props: CustomFieldProps) => {
                         fullWidth
                       >
                         <MenuItem value="">Select Product</MenuItem>
-                        {productList.map((product) => (
-                          <MenuItem key={product.___PRD} value={product.___PRD}>
+                        {productList.map((product, prodIndex) => (
+                          <MenuItem
+                            id={`product-option-${index}-${prodIndex}`}
+                            key={product.___PRD}
+                            value={product.___PRD}
+                          >
                             {product.Product} - {product.Description}
                           </MenuItem>
                         ))}
@@ -739,6 +792,7 @@ const CustomField = (props: CustomFieldProps) => {
                     </TableCell>
                     <TableCell>
                       <input
+                        id={`quantity-input-${index}`}
                         type="number"
                         value={orderProduct.qty}
                         onChange={(e) =>
@@ -766,13 +820,11 @@ const CustomField = (props: CustomFieldProps) => {
                     </TableCell>
                     <TableCell>
                       <IconButton
+                        id={`delete-product-${index}`}
                         onClick={() => handleDelete(index)}
                         style={{ color: "red" }}
                       >
-                        <Typography
-                          variant="body2"
-                          style={{ color: "red" }}
-                        >
+                        <Typography variant="body2" style={{ color: "red" }}>
                           Delete
                         </Typography>
                       </IconButton>
@@ -796,6 +848,7 @@ const CustomField = (props: CustomFieldProps) => {
             </Table>
             <Box display="flex" justifyContent="flex-end" mt={2}>
               <Button
+                id="add-product-btn"
                 onClick={handleAddProductRow}
                 style={{
                   background: "#D8EEDA",
@@ -811,6 +864,7 @@ const CustomField = (props: CustomFieldProps) => {
               Write your comments here
             </Typography>
             <TextField
+              id="comments-input"
               fullWidth
               value={comment}
               multiline
@@ -854,7 +908,7 @@ const CustomField = (props: CustomFieldProps) => {
                   The portal does not automatically verify any change in
                   eligibility or authorization status. By placing an order, the
                   practitioner certifies that they have independently verified
-                  the patient’s current eligibility. Any orders placed under
+                  the patient's current eligibility. Any orders placed under
                   incorrect eligibility assumptions remain the sole
                   responsibility of the facility, and Legacy Medical Consultants
                   shall not be liable for orders made under changed eligibility
@@ -863,16 +917,15 @@ const CustomField = (props: CustomFieldProps) => {
                 <FormControlLabel
                   control={
                     <Checkbox
+                      id="disclaimer-checkbox"
                       checked={disclaimerChecked}
-                      onChange={(e) =>
-                        setDisclaimerChecked(e.target.checked)
-                      }
+                      onChange={(e) => setDisclaimerChecked(e.target.checked)}
                     />
                   }
                   label="I agree to the disclaimer"
                 />
               </Box>
-            ) : 
+            ) : (
               <Box mt={1}>
                 <Typography
                   variant="caption"
@@ -880,13 +933,15 @@ const CustomField = (props: CustomFieldProps) => {
                   gutterBottom
                   style={{ fontSize: "0.65rem" }}
                 >
-                  Disclaimer: Please note that all prices are estimates and may vary based on final assessment or additional factors.
+                  Disclaimer: Please note that all prices are estimates and may
+                  vary based on final assessment or additional factors.
                 </Typography>
               </Box>
-            }
+            )}
 
             <Box display="flex" justifyContent="space-between" mt={2}>
               <Button
+                id="cancel-order-btn"
                 variant="contained"
                 onClick={handleDialogClose}
                 style={{ background: "#D8EEDA", color: "#157069" }}
@@ -894,11 +949,20 @@ const CustomField = (props: CustomFieldProps) => {
                 Cancel
               </Button>
               <Button
+                id="submit-order-btn"
                 variant="contained"
                 onClick={handleSubmit}
-                style={{ background: "#14706A", color: "white" }}
+                sx={{
+                  background: "#14706A",
+                  color: "white",
+                  "&.Mui-disabled": {
+                    background: "#ccc", // Disabled background color
+                    color: "#666", // Disabled text color
+                  },
+                }}
                 disabled={
-                  data?.account?.FacilityType === "SNF" && !disclaimerChecked
+                  /* data?.account?.FacilityType === "SNF" ||  */ orderLimit ===
+                  true
                 }
               >
                 Submit
@@ -910,7 +974,6 @@ const CustomField = (props: CustomFieldProps) => {
           <DialogContent
             style={{ maxWidth: "100%", overflowX: "hidden", padding: "10px" }}
           >
-
             <Summary
               ivr={data?.ivr}
               ref={summaryRef}
@@ -921,10 +984,13 @@ const CustomField = (props: CustomFieldProps) => {
               five={five}
               patient={data?.patient}
             />
-            
           </DialogContent>
         )}
-        <Dialog open={emailDialogOpen} onClose={handleEmailDialogClose}>
+        <Dialog
+          id="email-dialog"
+          open={emailDialogOpen}
+          onClose={handleEmailDialogClose}
+        >
           <DialogTitle>Send PDF</DialogTitle>
           <DialogContent style={{ width: "400px" }}>
             <Typography variant="body1" mb={5}>
@@ -936,6 +1002,7 @@ const CustomField = (props: CustomFieldProps) => {
               it can take up to 5 minutes for you to receive the email.
             </Typography>
             <TextField
+              id="email-input"
               fullWidth
               margin="normal"
               label="Email"
@@ -952,6 +1019,7 @@ const CustomField = (props: CustomFieldProps) => {
               }}
             >
               <Button
+                id="send-email-btn"
                 style={{
                   width: "15vw",
                   backgroundColor: "#1d343d",

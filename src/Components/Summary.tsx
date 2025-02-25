@@ -132,9 +132,10 @@ const Summary = forwardRef((props, ref) => {
 
 
   return (
-    <Container style={{ width: "100%" }}>
+    <Container id="summary-container" style={{ width: "100%" }}>
       {ivr !== undefined && (
         <Box
+          id="pdf-content"
           ref={pdfRef}
           style={{
             position: "relative",
@@ -150,6 +151,7 @@ const Summary = forwardRef((props, ref) => {
             `}
           />
           <img
+            id="banner-image"
             src={svgDataUrl}
             alt="Banner Image"
             width="320px"
@@ -204,7 +206,7 @@ const Summary = forwardRef((props, ref) => {
             </Typography>
           </Box>
 
-          <TableContainer style={{ marginTop: "20px" }}>
+          <TableContainer id="summary-table" style={{ marginTop: "20px" }}>
             <Table style={{ fontSize: "0.8rem" }} size="small">
               <DarkBorderTableRow>
                 <DarkBorderTableCell colSpan={1}>
@@ -364,7 +366,6 @@ const Summary = forwardRef((props, ref) => {
                 </TableCell>
                 <TableCell colSpan={5}>{ivr?.PBS_CoPay2}</TableCell>
               </DarkBorderTableRow>
-              {/* --------------------------------------------- */}
               <DarkBorderTableRow>
                 <TableCell>
                   <strong>Plan Type and Benefits</strong>
@@ -433,7 +434,7 @@ const Summary = forwardRef((props, ref) => {
             >
               Legal Disclaimer: This does not guarantee payment, nor does
               insurance verification or prior authorization guarantee payment.
-              Coverage and payment rates are based on provider’s contract. None
+              Coverage and payment rates are based on provider's contract. None
               of the content should be interpreted as billing or reimbursement
               advice or guidance. Documentation must support medical necessity.
               Please review medical policy for specific criteria.
@@ -461,6 +462,7 @@ const Summary = forwardRef((props, ref) => {
               style={{ fontSize: "0.6rem" }}
             >
               <a
+                id="website-link"
                 href="http://www.legacymedicalconsultants.com"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -474,6 +476,7 @@ const Summary = forwardRef((props, ref) => {
         </Box>
       )}
       <Box
+        id="action-buttons"
         display="flex"
         justifyContent="center"
         alignItems="center"
@@ -481,6 +484,7 @@ const Summary = forwardRef((props, ref) => {
         mt={5}
       >
         <Button
+          id="cancel-summary-btn"
           onClick={handleDialogClose}
           style={{
             width: "15vw",
@@ -492,6 +496,7 @@ const Summary = forwardRef((props, ref) => {
           Cancel
         </Button>
         <Button
+          id="confirm-summary-btn"
           onClick={handleNext}
           style={{
             width: "15vw",
