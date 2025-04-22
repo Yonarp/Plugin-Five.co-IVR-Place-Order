@@ -222,10 +222,15 @@ const CustomField = (props: CustomFieldProps) => {
           setAddressName(primaryAddress?.AddressName);
           setFullAddress(primaryAddress);
           setDiscountPercentages({
-            Impax: response.account?.DiscountPercentageImpax,
-            Orion: response.account?.DiscountPercentageOrion,
-            Surgraft: response.account?.DiscountPercentageSurgraft,
-            Zenith: response.account?.DiscountPercentageZenith,
+            "Impax": response.account?.DiscountPercentageImpax,
+            "Orion": response.account?.DiscountPercentageOrion,
+            "Surgraft": response.account?.DiscountPercentageSurgraft,
+            "Zenith": response.account?.DiscountPercentageZenith,
+            "Biovance": response.account?.DiscountPercentageBiovance,
+            "Biovance_3L": response.account?.DiscountPercentageBiovance3L,
+            "Rebound": response.account?.DiscountPercentageRebound,
+            "Complete_ACA": response.account?.DiscountPercentageACA,
+            "Reeva FT": response.account?.DiscountPercentageReeva,
           });
 
           const payorKeys = [
