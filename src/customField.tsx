@@ -39,6 +39,7 @@ const CustomField = (props: CustomFieldProps) => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [orders, setOrders] = useState();
   const [orderLimit, setOrderLimit] = useState<boolean>(false);
+  const [warning, setWarning] = useState(false) // we give a warning to the user if the IVR approval date is older than 12 weeks
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
   const [email, setEmail] = useState(null);
   const [data, setData] = useState(null);
@@ -49,7 +50,7 @@ const CustomField = (props: CustomFieldProps) => {
   const [totalAmount, setTotalAmount] = useState(0);
   const [selectedParentProduct, setSelectedParentProduct] = useState("");
   const [orderProducts, setOrderProducts] = useState([
-    { product: "", price: 0, qty: 1, discount: 0, amount: 0 },
+    { product: "", price: 0, qty: 0, discount: 0, amount: 0 },
   ]);
 
   const [page, setPage] = useState(1);
@@ -64,6 +65,7 @@ const CustomField = (props: CustomFieldProps) => {
 
   // New state variable for the disclaimer checkbox
   const [disclaimerChecked, setDisclaimerChecked] = useState(false);
+  const [orderDialog, setOrderDialog] = useState(false);
 
   /* const discountPercentages = {
     Impax: 0.2,
@@ -72,17 +74,34 @@ const CustomField = (props: CustomFieldProps) => {
     Zenith: 0.3,
   }; */
 
+ 
+
   const handleSubmit = async () => {
     const servicedate = new Date(serviceDate || data?.ivr?.Date);
     const today = new Date();
-
+  
     if (servicedate <= today) {
       five.message(
         "Date of Service cannot be earlier than or equal to today's date."
       );
       return;
     }
-
+  
+    if (
+      orderProducts.length === 0 ||
+      orderProducts.some(
+        (item) => !item.product || item.product.trim() === ""
+      )
+    ) {
+      five.message("Please add a product before placing an order.");
+      return;
+    }
+  
+    if (orderProducts.some((item) => item.qty <= 0)) {
+      five.message("Item quantity cannot be 0.");
+      return;
+    }
+  
     const order = {
       ACT: data.account.___ACT,
       USR: data.practitioner.___USR,
@@ -96,7 +115,7 @@ const CustomField = (props: CustomFieldProps) => {
       fullAddress: fullAddress,
       DateService: serviceDate,
     };
-
+  
     await five.executeFunction(
       "pushOrder",
       //@ts-ignore
@@ -180,7 +199,21 @@ const CustomField = (props: CustomFieldProps) => {
             setProductList(filterProductList(response.productList2));
           }
 
-          setData(response);
+         setData(response)
+          if (response?.ivr?.ApprovalDate) {
+            const approvalDate = new Date(response.ivr.ApprovalDate);
+            const now = new Date();
+      
+            // “12 weeks ago” in milliseconds:
+            const twelveWeeksInMs = 12 * 7 * 24 * 60 * 60 * 1000; // ~84 days
+            const twelveWeeksAgo = new Date(now.getTime() - twelveWeeksInMs);
+      
+            if (approvalDate < twelveWeeksAgo) {
+              setWarning(true);
+            } else {
+              setWarning(false);
+            }
+          }
           setProductList(filterProductList(response.productList));
           const primaryAddress = response.address.find(
             (addr) => addr._isPrimary === 1
@@ -404,6 +437,15 @@ const CustomField = (props: CustomFieldProps) => {
     setOrderProducts(newOrderProducts);
   };
 
+  const handleOrderDialogClose = () => {
+    setOrderDialog(false)
+  }
+
+  const handleOrderDialog = () => {
+    setOrderLimit(false);
+    handleOrderDialogClose()
+  }
+
   const handleNext = () => {
     setPage(--page);
   };
@@ -588,12 +630,34 @@ const CustomField = (props: CustomFieldProps) => {
                     marginTop: "10px",
                     marginLeft: "5px"
                   }}
-                  onClick={() => setOrderLimit(false)}
+                  onClick={handleOrderDialog}
                 >
                   Yes
                 </Button>
               </Box>
             )}
+
+          {warning && (
+              <Box display="flex" flexDirection="row" justifyContent="space-between" alignItems="center" sx={{
+                width: "100%"
+              }}>
+                <Alert severity="warning" sx={{ mt: 2, fontWeight: "bold", flex: 2 }}>
+                  The approval date is greater than 12 weeks, Are you sure you would like to continue?
+                </Alert>
+                <Button
+                  sx={{
+                    background: "#14706A",
+                    color: "white",
+                    marginTop: "10px",
+                    marginLeft: "5px"
+                  }}
+                  onClick={() => setWarning(false)}
+                >
+                  Yes
+                </Button>
+              </Box>
+            )}
+
 
             <Typography variant="h6" mt={5}>
               Details:{" "}
@@ -962,7 +1026,7 @@ const CustomField = (props: CustomFieldProps) => {
                 }}
                 disabled={
                   /* data?.account?.FacilityType === "SNF" ||  */ orderLimit ===
-                  true
+                  true || warning === true
                 }
               >
                 Submit
@@ -1031,7 +1095,8 @@ const CustomField = (props: CustomFieldProps) => {
               </Button>
             </Box>
           </DialogContent>
-        </Dialog>
+        </Dialog>       
+
       </Dialog>
     </Box>
   );
