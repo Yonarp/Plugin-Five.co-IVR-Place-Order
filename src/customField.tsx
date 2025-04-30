@@ -712,6 +712,16 @@ const CustomField = (props: CustomFieldProps) => {
                   </TableRow>
                   <TableRow>
                     <TableCell component="th" scope="row">
+                      <strong>Patient ID:</strong>
+                    </TableCell>
+                    <TableCell>{data?.patient?.___PAT.split("-")[0]}</TableCell>
+                    <TableCell component="th" scope="row">
+                      <strong>Patient Name:</strong>
+                    </TableCell>
+                    <TableCell>{data?.ivr?.Patient}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell component="th" scope="row">
                       <strong>Approval Date:</strong>
                     </TableCell>
                     <TableCell>{data?.ivr?.ApprovalDate}</TableCell>
