@@ -218,16 +218,63 @@ const CustomField = (props: CustomFieldProps) => {
           setAddressName(primaryAddress?.AddressName);
           setFullAddress(primaryAddress);
           setDiscountPercentages({
-            Impax: response.account?.DiscountPercentageImpax,
-            Orion: response.account?.DiscountPercentageOrion,
-            Surgraft: response.account?.DiscountPercentageSurgraft,
-            Zenith: response.account?.DiscountPercentageZenith,
-            Biovance: response.account?.DiscountPercentageBiovance,
-            Biovance_3L: response.account?.DiscountPercentageBiovance3L,
-            Rebound: response.account?.DiscountPercentageRebound,
-            Complete_ACA: response.account?.DiscountPercentageACA,
-            "Reeva FT": response.account?.DiscountPercentageReeva,
+             Impax: response.account?.DiscountPercentageImpax,
+             Orion: response.account?.DiscountPercentageOrion,
+             Surgraft: response.account?.DiscountPercentageSurgraft,
+             Zenith: response.account?.DiscountPercentageZenith,
+             Biovance: response.account?.DiscountPercentageBiovance,
+             Biovance_3L: response.account?.DiscountPercentageBiovance3L,
+             Rebound: response.account?.DiscountPercentageRebound,
+             Complete_ACA: response.account?.DiscountPercentageACA,
+             "Reeva FT": response.account?.DiscountPercentageReeva,
+             "Amnio AMP-MP": response.account?.DiscountPercentageAmnio,
           });
+          
+          // To set the Discount Percentages dynamically based on the product list
+          /*
+          const allProducts = [
+            ...(response.productList || []),
+            ...(response.productList2 || []),
+          ];
+
+          // Build a normalized brand map: { normalizedBrand: actualBrand }
+          const brandMap = {};
+          allProducts.forEach((p) => {
+            if (p.Brand) {
+              const norm = p.Brand.replace(/[\s_\-]/g, '').toLowerCase();
+              brandMap[norm] = p.Brand;
+            }
+          });
+
+          const discounts = {};
+          Object.entries(response.account || {}).forEach(([key, value]) => {
+            if (key.startsWith("DiscountPercentage")) {
+              const suffix = key.replace("DiscountPercentage", "");
+              const norm = suffix.replace(/[\s_\-]/g, '').toLowerCase();
+
+              // Try exact match
+              let brand = brandMap[norm];
+
+              // Try partial match (prefer longest match)
+              if (!brand && norm) {
+                const matches = Object.keys(brandMap)
+                  .filter((k) => k.includes(norm))
+                  .sort((a, b) => b.length - a.length);
+                if (matches.length > 0) {
+                  brand = brandMap[matches[0]];
+                }
+              }
+
+              // Fallback to suffix if no match
+              if (!brand) {
+                brand = suffix;
+              }
+
+              discounts[brand] = value;
+            }
+          });
+          setDiscountPercentages(discounts);
+          */
 
           const payorKeys = [
             response?.patient?.__PAY1,
