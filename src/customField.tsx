@@ -602,7 +602,7 @@ const CustomField = (props: CustomFieldProps) => {
             }}
           >
             <Typography>Place Order</Typography>
-            
+
             {/* <Button
               id="download-pdf-btn"
                onClick={() => summaryRef.current.downloadPdf()} 
@@ -688,43 +688,61 @@ const CustomField = (props: CustomFieldProps) => {
               <Table>
                 <TableBody style={{ border: "1px solid black" }}>
                   <TableRow>
-                    <TableCell component="th" scope="row">
+                    <TableCell
+                      component="th"
+                      scope="row"
+                      style={{ width: "25%" }}
+                    >
                       <strong>Patient: </strong>
                     </TableCell>
-                    <TableCell component="th" scope="row">
-                       {data?.ivr?.Patient}
+                    <TableCell
+                      component="th"
+                      scope="row"
+                      style={{ width: "25%" }}
+                    >
+                      {data?.ivr?.Patient}
                     </TableCell>
-                    <TableCell component="th" scope="row">
+                    <TableCell
+                      component="th"
+                      scope="row"
+                      style={{ width: "25%" }}
+                    >
                       <Typography
-                        component="p"
+                        component="th"
                         onClick={() => setPage(page + 1)}
                         sx={{
                           cursor: "pointer",
                           background: "#14706A",
                           padding: "10px",
-                          color: 'white',
-                          textAlign: 'center',
+                          color: "white",
+                          textAlign: "center",
                           fontSize: "16px",
                           fontWeight: "bold",
-                          borderRadius: '5px',
+                          borderRadius: "5px",
                           transition: "color 0.2s, text-decoration 0.2s",
                           "&:hover": {
                             background: "#0F5E50", // darker teal on hover
                           },
                         }}
                       >
-                        View Patient Benefit Summary.
+                        View Patient Benefit Summary
                       </Typography>
                     </TableCell>
-                    <TableCell component="th" scope="row">
-                    </TableCell>
-
+                    <TableCell
+                      component="th"
+                      scope="row"
+                      style={{ width: "25%" }}
+                    ></TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell component="th" scope="row">
+                    <TableCell
+                      component="th"
+                      scope="row"
+                      style={{ width: "25%" }}
+                    >
                       <strong>Products:</strong>
                     </TableCell>
-                    <TableCell>
+                    <TableCell style={{ width: "25%" }}>
                       <Select
                         id="parent-product-select"
                         value={selectedParentProduct}
@@ -745,30 +763,58 @@ const CustomField = (props: CustomFieldProps) => {
                         )}
                       </Select>
                     </TableCell>
-                    <TableCell component="th" scope="row">
+                    <TableCell
+                      component="th"
+                      scope="row"
+                      style={{ width: "25%" }}
+                    >
                       <strong>Wound Size (CM²):</strong>
                     </TableCell>
-                    <TableCell>{data?.ivr?.WoundSizeCalc}</TableCell>
+                    <TableCell style={{ width: "25%" }}>
+                      {data?.ivr?.WoundSizeCalc}
+                    </TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell component="th" scope="row">
+                    <TableCell
+                      component="th"
+                      scope="row"
+                      style={{ width: "25%" }}
+                    >
                       <strong>Wound Type:</strong>
                     </TableCell>
-                    <TableCell>{data?.ivr?.WoundType}</TableCell>
-                    <TableCell component="th" scope="row">
+                    <TableCell style={{ width: "25%" }}>
+                      {data?.ivr?.WoundType}
+                    </TableCell>
+                    <TableCell
+                      component="th"
+                      scope="row"
+                      style={{ width: "25%" }}
+                    >
                       <strong>Account:</strong>
                     </TableCell>
-                    <TableCell>{data?.ivr?.Account}</TableCell>
+                    <TableCell style={{ width: "25%" }}>
+                      {data?.ivr?.Account}
+                    </TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell component="th" scope="row">
+                    <TableCell
+                      component="th"
+                      scope="row"
+                      style={{ width: "25%" }}
+                    >
                       <strong>Approval Date:</strong>
                     </TableCell>
-                    <TableCell>{data?.ivr?.ApprovalDate}</TableCell>
-                    <TableCell component="th" scope="row">
+                    <TableCell style={{ width: "25%" }}>
+                      {data?.ivr?.ApprovalDate}
+                    </TableCell>
+                    <TableCell
+                      component="th"
+                      scope="row"
+                      style={{ width: "25%" }}
+                    >
                       <strong>Date Of Service:</strong>
                     </TableCell>
-                    <TableCell>
+                    <TableCell style={{ width: "25%" }}>
                       <TextField
                         id="service-date-input"
                         type="date"
@@ -781,14 +827,24 @@ const CustomField = (props: CustomFieldProps) => {
                     </TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell component="th" scope="row">
+                    <TableCell
+                      component="th"
+                      scope="row"
+                      style={{ width: "25%" }}
+                    >
                       <strong>Place Of Service:</strong>
                     </TableCell>
-                    <TableCell>{data?.ivr?.PlaceofService}</TableCell>
-                    <TableCell component="th" scope="row">
+                    <TableCell style={{ width: "25%" }}>
+                      {data?.ivr?.PlaceofService}
+                    </TableCell>
+                    <TableCell
+                      component="th"
+                      scope="row"
+                      style={{ width: "25%" }}
+                    >
                       <strong>MAC:</strong>
                     </TableCell>
-                    <TableCell>{mac}</TableCell>
+                    <TableCell style={{ width: "25%" }}>{mac}</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
@@ -853,7 +909,7 @@ const CustomField = (props: CustomFieldProps) => {
               </Table>
             </TableContainer>
             <Typography variant="h6" mt={5}>
-              Please Select The Desired Products For The Order
+              Please Select the Desired Products for the Order
             </Typography>
             <Table id="products-table">
               <TableHead>
