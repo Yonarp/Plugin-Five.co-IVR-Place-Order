@@ -39,7 +39,7 @@ const CustomField = (props: CustomFieldProps) => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [orders, setOrders] = useState();
   const [orderLimit, setOrderLimit] = useState<boolean>(false);
-  const [warning, setWarning] = useState(false) // we give a warning to the user if the IVR approval date is older than 12 weeks
+  const [warning, setWarning] = useState(false); // we give a warning to the user if the IVR approval date is older than 12 weeks
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
   const [email, setEmail] = useState(null);
   const [data, setData] = useState(null);
@@ -53,7 +53,7 @@ const CustomField = (props: CustomFieldProps) => {
     { product: "", price: 0, qty: 0, discount: 0, amount: 0 },
   ]);
 
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(0);
   const [selectedAddress, setSelectedAddress] = useState("");
   const [addressName, setAddressName] = useState(null);
   const [fullAddress, setFullAddress] = useState(null);
@@ -74,34 +74,30 @@ const CustomField = (props: CustomFieldProps) => {
     Zenith: 0.3,
   }; */
 
- 
-
   const handleSubmit = async () => {
     const servicedate = new Date(serviceDate || data?.ivr?.Date);
     const today = new Date();
-  
+
     if (servicedate <= today) {
       five.message(
         "Date of Service cannot be earlier than or equal to today's date."
       );
       return;
     }
-  
+
     if (
       orderProducts.length === 0 ||
-      orderProducts.some(
-        (item) => !item.product || item.product.trim() === ""
-      )
+      orderProducts.some((item) => !item.product || item.product.trim() === "")
     ) {
       five.message("Please add a product before placing an order.");
       return;
     }
-  
+
     if (orderProducts.some((item) => item.qty <= 0)) {
       five.message("Item quantity cannot be 0.");
       return;
     }
-  
+
     const order = {
       ACT: data.account.___ACT,
       USR: data.practitioner.___USR,
@@ -115,7 +111,7 @@ const CustomField = (props: CustomFieldProps) => {
       fullAddress: fullAddress,
       DateService: serviceDate,
     };
-  
+
     await five.executeFunction(
       "pushOrder",
       //@ts-ignore
@@ -162,7 +158,7 @@ const CustomField = (props: CustomFieldProps) => {
       const orderObj = {
         IVRKey: selectedRecord.data.IVR,
       };
-
+      // We get orders to check if the order limit exceeds the amount of 10 then we give the user a warning
       await five.executeFunction(
         "getOrders",
         //@ts-ignore
@@ -199,15 +195,15 @@ const CustomField = (props: CustomFieldProps) => {
             setProductList(filterProductList(response.productList2));
           }
 
-         setData(response)
+          setData(response);
           if (response?.ivr?.ApprovalDate) {
             const approvalDate = new Date(response.ivr.ApprovalDate);
             const now = new Date();
-      
+
             // “12 weeks ago” in milliseconds:
             const twelveWeeksInMs = 12 * 7 * 24 * 60 * 60 * 1000; // ~84 days
             const twelveWeeksAgo = new Date(now.getTime() - twelveWeeksInMs);
-      
+
             if (approvalDate < twelveWeeksAgo) {
               setWarning(true);
             } else {
@@ -222,14 +218,14 @@ const CustomField = (props: CustomFieldProps) => {
           setAddressName(primaryAddress?.AddressName);
           setFullAddress(primaryAddress);
           setDiscountPercentages({
-            "Impax": response.account?.DiscountPercentageImpax,
-            "Orion": response.account?.DiscountPercentageOrion,
-            "Surgraft": response.account?.DiscountPercentageSurgraft,
-            "Zenith": response.account?.DiscountPercentageZenith,
-            "Biovance": response.account?.DiscountPercentageBiovance,
-            "Biovance_3L": response.account?.DiscountPercentageBiovance3L,
-            "Rebound": response.account?.DiscountPercentageRebound,
-            "Complete_ACA": response.account?.DiscountPercentageACA,
+            Impax: response.account?.DiscountPercentageImpax,
+            Orion: response.account?.DiscountPercentageOrion,
+            Surgraft: response.account?.DiscountPercentageSurgraft,
+            Zenith: response.account?.DiscountPercentageZenith,
+            Biovance: response.account?.DiscountPercentageBiovance,
+            Biovance_3L: response.account?.DiscountPercentageBiovance3L,
+            Rebound: response.account?.DiscountPercentageRebound,
+            Complete_ACA: response.account?.DiscountPercentageACA,
             "Reeva FT": response.account?.DiscountPercentageReeva,
           });
 
@@ -262,7 +258,6 @@ const CustomField = (props: CustomFieldProps) => {
         }
       );
     };
-
     fetchData();
   };
 
@@ -277,7 +272,7 @@ const CustomField = (props: CustomFieldProps) => {
     setOrderProducts([
       { product: "", price: 0, qty: 1, discount: 0, amount: 0 },
     ]);
-    setPage(1);
+    setPage(0);
     setSelectedAddress("");
     setAddressName(null);
     setFullAddress(null);
@@ -443,13 +438,13 @@ const CustomField = (props: CustomFieldProps) => {
   };
 
   const handleOrderDialogClose = () => {
-    setOrderDialog(false)
-  }
+    setOrderDialog(false);
+  };
 
   const handleOrderDialog = () => {
     setOrderLimit(false);
-    handleOrderDialogClose()
-  }
+    handleOrderDialogClose();
+  };
 
   const handleNext = () => {
     setPage(--page);
@@ -607,13 +602,17 @@ const CustomField = (props: CustomFieldProps) => {
             }}
           >
             <Typography>Place Order</Typography>
-            <Button
+            
+            {/* <Button
               id="download-pdf-btn"
-              onClick={() => summaryRef.current.downloadPdf()}
+               onClick={() => summaryRef.current.downloadPdf()} 
+              onClick={() => setPage(++page)}
               style={{ background: "none", color: "white" }}
             >
-              Download as PDF &#8595;
-            </Button>
+              View Patient Summary
+            </Button> */}
+
+            {/* Download as PDF &#8595; */}
           </Box>
         </DialogTitle>
         {page === 0 && (
@@ -621,10 +620,19 @@ const CustomField = (props: CustomFieldProps) => {
             style={{ maxWidth: "100%", overflowX: "hidden", padding: "10px" }}
           >
             {orderLimit && (
-              <Box display="flex" flexDirection="row" justifyContent="space-between" alignItems="center" sx={{
-                width: "100%"
-              }}  >
-                <Alert severity="warning" sx={{ mt: 2, fontWeight: "bold", flex: 2 }}>
+              <Box
+                display="flex"
+                flexDirection="row"
+                justifyContent="space-between"
+                alignItems="center"
+                sx={{
+                  width: "100%",
+                }}
+              >
+                <Alert
+                  severity="warning"
+                  sx={{ mt: 2, fontWeight: "bold", flex: 2 }}
+                >
                   {orders.length} orders have previously been submitted for this
                   IVR. Are you sure you would like to continue?
                 </Alert>
@@ -633,7 +641,7 @@ const CustomField = (props: CustomFieldProps) => {
                     background: "#14706A",
                     color: "white",
                     marginTop: "10px",
-                    marginLeft: "5px"
+                    marginLeft: "5px",
                   }}
                   onClick={handleOrderDialog}
                 >
@@ -642,19 +650,29 @@ const CustomField = (props: CustomFieldProps) => {
               </Box>
             )}
 
-          {warning && (
-              <Box display="flex" flexDirection="row" justifyContent="space-between" alignItems="center" sx={{
-                width: "100%"
-              }}>
-                <Alert severity="warning" sx={{ mt: 2, fontWeight: "bold", flex: 2 }}>
-                  The approval date is greater than 12 weeks, Are you sure you would like to continue?
+            {warning && (
+              <Box
+                display="flex"
+                flexDirection="row"
+                justifyContent="space-between"
+                alignItems="center"
+                sx={{
+                  width: "100%",
+                }}
+              >
+                <Alert
+                  severity="warning"
+                  sx={{ mt: 2, fontWeight: "bold", flex: 2 }}
+                >
+                  The approval date is greater than 12 weeks, Are you sure you
+                  would like to continue?
                 </Alert>
                 <Button
                   sx={{
                     background: "#14706A",
                     color: "white",
                     marginTop: "10px",
-                    marginLeft: "5px"
+                    marginLeft: "5px",
                   }}
                   onClick={() => setWarning(false)}
                 >
@@ -663,13 +681,45 @@ const CustomField = (props: CustomFieldProps) => {
               </Box>
             )}
 
-
             <Typography variant="h6" mt={5}>
               Details:{" "}
             </Typography>
             <TableContainer component={Paper}>
               <Table>
                 <TableBody style={{ border: "1px solid black" }}>
+                  <TableRow>
+                    <TableCell component="th" scope="row">
+                      <strong>Patient: </strong>
+                    </TableCell>
+                    <TableCell component="th" scope="row">
+                       {data?.ivr?.Patient}
+                    </TableCell>
+                    <TableCell component="th" scope="row">
+                      <Typography
+                        component="p"
+                        onClick={() => setPage(page + 1)}
+                        sx={{
+                          cursor: "pointer",
+                          background: "#14706A",
+                          padding: "10px",
+                          color: 'white',
+                          textAlign: 'center',
+                          fontSize: "16px",
+                          fontWeight: "bold",
+                          borderRadius: '5px',
+                          transition: "color 0.2s, text-decoration 0.2s",
+                          "&:hover": {
+                            background: "#0F5E50", // darker teal on hover
+                          },
+                        }}
+                      >
+                        View Patient Benefit Summary.
+                      </Typography>
+                    </TableCell>
+                    <TableCell component="th" scope="row">
+                    </TableCell>
+
+                  </TableRow>
                   <TableRow>
                     <TableCell component="th" scope="row">
                       <strong>Products:</strong>
@@ -1031,7 +1081,7 @@ const CustomField = (props: CustomFieldProps) => {
                 }}
                 disabled={
                   /* data?.account?.FacilityType === "SNF" ||  */ orderLimit ===
-                  true || warning === true
+                    true || warning === true
                 }
               >
                 Submit
@@ -1100,8 +1150,7 @@ const CustomField = (props: CustomFieldProps) => {
               </Button>
             </Box>
           </DialogContent>
-        </Dialog>       
-
+        </Dialog>
       </Dialog>
     </Box>
   );

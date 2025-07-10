@@ -122,7 +122,7 @@ const Summary = forwardRef((props, ref) => {
 
   return (
     <Container id="summary-container" style={{ width: "100%" }}>
-      {ivr !== undefined && (
+      { ivr !== undefined && (
         <Box
           id="pdf-content"
           ref={pdfRef}
