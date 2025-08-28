@@ -74,6 +74,11 @@ const CustomField = (props: CustomFieldProps) => {
     Zenith: 0.3,
   }; */
 
+  const ACTIGRAFT_PRODUCT_KEYS = [
+    "8E2F864C-B5E2-43BA-A374-F2D8DC0585D1",
+    "A2769BB8-5680-4E24-AE3A-E98BB13AA713",
+  ];
+
   const handleSubmit = async () => {
     const servicedate = new Date(serviceDate || data?.ivr?.Date);
     const today = new Date();
@@ -150,6 +155,7 @@ const CustomField = (props: CustomFieldProps) => {
     return newList;
   };
 
+  console.log("Logging Product List from Place Order", productList, data)
   const handleDialogOpen = () => {
     setDialogOpen(true);
     setLoading(true);
@@ -307,6 +313,8 @@ const CustomField = (props: CustomFieldProps) => {
     };
     fetchData();
   };
+
+  
 
   const handleDialogClose = () => {
     setEmail(null);
