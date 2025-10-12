@@ -27,10 +27,13 @@ import {
   FormControlLabel,
   Alert,
   Paper,
+  Grid, // Added Grid for layout
+  FormGroup, // Added for checkbox group
 } from "@mui/material";
 
 import { CustomFieldProps } from "../../../common";
 import Summary from "./Components/Summary";
+import CheckoutForm from "./Components/CheckoutForm";
 
 FiveInitialize();
 
@@ -67,18 +70,47 @@ const CustomField = (props: CustomFieldProps) => {
   const [disclaimerChecked, setDisclaimerChecked] = useState(false);
   const [orderDialog, setOrderDialog] = useState(false);
 
-  /* const discountPercentages = {
-    Impax: 0.2,
-    Orion: 0.4,
-    Surgraft: 0.1,
-    Zenith: 0.3,
-  }; */
+  // --- START: New State for Shipping Options ---
+  const [showShippingOptions, setShowShippingOptions] = useState(false);
+  const [selectedShippingOption, setSelectedShippingOption] = useState(""); // Can be 'ground', 'air', 'thirdParty'
+  const [thirdPartyCarrier, setThirdPartyCarrier] = useState("");
+  const [thirdPartyAccount, setThirdPartyAccount] = useState("");
+  const [invoicingEmail, setInvoicingEmail] = useState("");
+  const [hidePricing, setHidePricing] = useState(false);
+  // --- END: New State for Shipping Options ---
+
+  const [submitting, setSubmitting] = useState(false);
 
   const ACTIGRAFT_PRODUCT_KEYS = [
     "8E2F864C-B5E2-43BA-A374-F2D8DC0585D1",
     "A2769BB8-5680-4E24-AE3A-E98BB13AA713",
   ];
 
+  // --- START: New useEffect to control shipping options visibility ---
+  useEffect(() => {
+    let isActigraft = false;
+    if (data && selectedParentProduct) {
+      const currentProduct =
+        selectedParentProduct === "product" ? data.product : data.product2;
+      if (
+        currentProduct &&
+        ACTIGRAFT_PRODUCT_KEYS.includes(currentProduct.___PRD)
+      ) {
+        isActigraft = true;
+      }
+    }
+    setShowShippingOptions(isActigraft);
+    setHidePricing(isActigraft);
+    // Reset shipping state if the product is changed to a non-actigraft one
+    if (!isActigraft) {
+      setSelectedShippingOption("");
+      setThirdPartyCarrier("");
+      setThirdPartyAccount("");
+      setInvoicingEmail("");
+    }
+  }, [data, selectedParentProduct]);
+
+  // --- END: New useEffect ---
   const handleSubmit = async () => {
     const servicedate = new Date(serviceDate || data?.ivr?.Date);
     const today = new Date();
@@ -115,8 +147,13 @@ const CustomField = (props: CustomFieldProps) => {
       comment: comment,
       fullAddress: fullAddress,
       DateService: serviceDate,
+      // Add shipping info to the order object
+      ShippingOption: selectedShippingOption,
+      Carrier: thirdPartyCarrier,
+      ShippingAccount: thirdPartyAccount,
     };
 
+    setSubmitting(true)
     await five.executeFunction(
       "pushOrder",
       //@ts-ignore
@@ -124,9 +161,12 @@ const CustomField = (props: CustomFieldProps) => {
       null,
       null,
       null,
-      () => {}
+      () => {
+        setSubmitting(false)
+        handleDialogClose();
+      }
     );
-    handleDialogClose();
+    
   };
 
   const handleSendEmail = async () => {
@@ -155,7 +195,6 @@ const CustomField = (props: CustomFieldProps) => {
     return newList;
   };
 
-  console.log("Logging Product List from Place Order", productList, data)
   const handleDialogOpen = () => {
     setDialogOpen(true);
     setLoading(true);
@@ -174,7 +213,6 @@ const CustomField = (props: CustomFieldProps) => {
         null,
         (result) => {
           const response = JSON.parse(result?.serverResponse?.results);
-          console.log("Logging response to check order", response);
           const orders = response.response.value;
           setOrders(orders);
 
@@ -224,63 +262,17 @@ const CustomField = (props: CustomFieldProps) => {
           setAddressName(primaryAddress?.AddressName);
           setFullAddress(primaryAddress);
           setDiscountPercentages({
-             Impax: response.account?.DiscountPercentageImpax,
-             Orion: response.account?.DiscountPercentageOrion,
-             Surgraft: response.account?.DiscountPercentageSurgraft,
-             Zenith: response.account?.DiscountPercentageZenith,
-             Biovance: response.account?.DiscountPercentageBiovance,
-             Biovance_3L: response.account?.DiscountPercentageBiovance3L,
-             Rebound: response.account?.DiscountPercentageRebound,
-             Complete_ACA: response.account?.DiscountPercentageACA,
-             "Reeva FT": response.account?.DiscountPercentageReeva,
-             "Amnio AMP-MP": response.account?.DiscountPercentageAmnio,
+            Impax: response.account?.DiscountPercentageImpax,
+            Orion: response.account?.DiscountPercentageOrion,
+            Surgraft: response.account?.DiscountPercentageSurgraft,
+            Zenith: response.account?.DiscountPercentageZenith,
+            Biovance: response.account?.DiscountPercentageBiovance,
+            Biovance_3L: response.account?.DiscountPercentageBiovance3L,
+            Rebound: response.account?.DiscountPercentageRebound,
+            Complete_ACA: response.account?.DiscountPercentageACA,
+            "Reeva FT": response.account?.DiscountPercentageReeva,
+            "Amnio AMP-MP": response.account?.DiscountPercentageAmnio,
           });
-          
-          // To set the Discount Percentages dynamically based on the product list
-          /*
-          const allProducts = [
-            ...(response.productList || []),
-            ...(response.productList2 || []),
-          ];
-
-          // Build a normalized brand map: { normalizedBrand: actualBrand }
-          const brandMap = {};
-          allProducts.forEach((p) => {
-            if (p.Brand) {
-              const norm = p.Brand.replace(/[\s_\-]/g, '').toLowerCase();
-              brandMap[norm] = p.Brand;
-            }
-          });
-
-          const discounts = {};
-          Object.entries(response.account || {}).forEach(([key, value]) => {
-            if (key.startsWith("DiscountPercentage")) {
-              const suffix = key.replace("DiscountPercentage", "");
-              const norm = suffix.replace(/[\s_\-]/g, '').toLowerCase();
-
-              // Try exact match
-              let brand = brandMap[norm];
-
-              // Try partial match (prefer longest match)
-              if (!brand && norm) {
-                const matches = Object.keys(brandMap)
-                  .filter((k) => k.includes(norm))
-                  .sort((a, b) => b.length - a.length);
-                if (matches.length > 0) {
-                  brand = brandMap[matches[0]];
-                }
-              }
-
-              // Fallback to suffix if no match
-              if (!brand) {
-                brand = suffix;
-              }
-
-              discounts[brand] = value;
-            }
-          });
-          setDiscountPercentages(discounts);
-          */
 
           const payorKeys = [
             response?.patient?.__PAY1,
@@ -314,8 +306,6 @@ const CustomField = (props: CustomFieldProps) => {
     fetchData();
   };
 
-  
-
   const handleDialogClose = () => {
     setEmail(null);
     setLoading(false);
@@ -333,6 +323,12 @@ const CustomField = (props: CustomFieldProps) => {
     setFullAddress(null);
     setPayors([]);
     setDiscountPercentages({});
+    // Reset new shipping states
+    setShowShippingOptions(false);
+    setSelectedShippingOption("");
+    setThirdPartyCarrier("");
+    setThirdPartyAccount("");
+    setInvoicingEmail("");
     setDialogOpen(false);
   };
 
@@ -350,6 +346,13 @@ const CustomField = (props: CustomFieldProps) => {
       { product: "", price: 0, qty: 1, discount: 0, amount: 0 },
     ]);
   };
+
+  // --- START: New Handler for Shipping Option Change ---
+  const handleShippingChange = (option) => {
+    // This logic makes the checkboxes behave like radio buttons
+    setSelectedShippingOption((prev) => (prev === option ? "" : option));
+  };
+  // --- END: New Handler ---
 
   const handleParentProductChange = (event) => {
     const selectedProduct = event.target.value;
@@ -374,12 +377,8 @@ const CustomField = (props: CustomFieldProps) => {
     return 4;
   }
 
-  /**
-   * Checks if the given serviceDate (string) is in the next quarter or beyond
-   * relative to "today".
-   */
   function isDateInNextOrFutureQuarter(serviceDateStr) {
-    if (!serviceDateStr) return false; // If no date chosen, treat as false
+    if (!serviceDateStr) return false;
 
     const today = new Date();
     const serviceDate = new Date(serviceDateStr);
@@ -394,43 +393,17 @@ const CustomField = (props: CustomFieldProps) => {
       nextYear += 1;
     }
 
-    // The service date's year/quarter
     const serviceYear = serviceDate.getFullYear();
     const serviceQuarter = getQuarter(serviceDate);
 
-    // 1) If service date's year is greater than nextYear => definitely "next or future"
-    // 2) If service date's year is less than nextYear => definitely NOT "next quarter or beyond"
-    // 3) If same year as nextYear => check if quarter >= nextQuarter
-    //    If serviceYear > currentYear but < nextYear, it means we're already into next year
-    //    (which could be Q1 but might be beyond).
-
-    // first check if serviceYear > currentYear
-    if (serviceYear > currentYear) {
-      // if serviceYear is bigger than nextYear, definitely beyond
-      if (serviceYear > nextYear) return true;
-
-      // if serviceYear == nextYear, check quarters
-      if (serviceYear === nextYear) {
-        return serviceQuarter >= nextQuarter;
-      } else {
-        // If the serviceYear is exactly currentYear + 1, that *is* nextYear
-        // This case is covered above, just leaving it for clarity
-        return true;
-      }
-    } else {
-      // if serviceYear == currentYear, we have to see if the quarter is beyond the nextQuarter
-      // (but that can only happen if the service date is in Q3 or Q4 and nextQuarter is Q2, for example).
-      // It's simpler to compare if the service date is >= the start of "nextQuarter" in the current year
-      // if the serviceYear is the same as currentYear, it cannot be *beyond* next quarter,
-      // unless nextQuarter is Q4 and the user picks Q4 or something.
-
-      // The numeric "rank" of the service quarter, e.g. Q4 = 4, Q2 = 2
-      // If serviceQuarter >= nextQuarter, that means it's in the next or future quarter within the same year
-      if (serviceYear === currentYear) {
-        return serviceQuarter >= nextQuarter;
-      }
+    if (serviceYear > nextYear) return true;
+    if (serviceYear === nextYear) {
+      return serviceQuarter >= nextQuarter;
     }
-    // default
+    if (serviceYear > currentYear && serviceYear < nextYear) return true;
+    if (serviceYear === currentYear) {
+      return serviceQuarter >= nextQuarter;
+    }
     return false;
   }
 
@@ -451,11 +424,12 @@ const CustomField = (props: CustomFieldProps) => {
         price = 0;
       }
 
-      const brand = data?.product?.Brand || "Unknown";
+      const currentMainProduct =
+        selectedParentProduct === "product" ? data.product : data.product2;
+      const brand = currentMainProduct?.Brand || "Unknown";
       const discount = discountPercentages[brand] || 0;
 
       const qty = newOrderProducts[index].qty || 1;
-
       const amount = price * qty * (1 - discount);
 
       newOrderProducts[index] = {
@@ -466,10 +440,11 @@ const CustomField = (props: CustomFieldProps) => {
         amount,
       };
     } else {
-      // If the user changes quantity or some other field
       newOrderProducts[index][field] = value;
       if (field === "qty") {
-        const brand = data?.product?.Brand || "Unknown";
+        const currentMainProduct =
+          selectedParentProduct === "product" ? data.product : data.product2;
+        const brand = currentMainProduct?.Brand || "Unknown";
         const discount = discountPercentages[brand] || 0;
         newOrderProducts[index].amount =
           newOrderProducts[index].price * value * (1 - discount);
@@ -513,8 +488,6 @@ const CustomField = (props: CustomFieldProps) => {
     setComment(event.target.value);
   };
 
-  // When Service Date goes to next quarter we use FutureBillRate as the field to update the price
-
   const handleDateChange = (newDate) => {
     setServiceDate(newDate);
 
@@ -535,12 +508,13 @@ const CustomField = (props: CustomFieldProps) => {
         ? matchedProduct.FutureBillRate
         : matchedProduct.BillRate;
 
-      // Future Bill Rate might come undefined from the API
       if (price === null || price === undefined || price === "") {
         price = 0;
       }
 
-      const brand = data?.product?.Brand || "Unknown";
+      const currentMainProduct =
+        selectedParentProduct === "product" ? data.product : data.product2;
+      const brand = currentMainProduct?.Brand || "Unknown";
       const discount = discountPercentages[brand] || 0;
       const newAmount = price * op.qty * (1 - discount);
 
@@ -549,6 +523,7 @@ const CustomField = (props: CustomFieldProps) => {
         price,
         amount: newAmount,
       };
+      
     });
 
     setOrderProducts(updatedProducts);
@@ -657,23 +632,30 @@ const CustomField = (props: CustomFieldProps) => {
             }}
           >
             <Typography>Place Order</Typography>
-
-            {/* <Button
-              id="download-pdf-btn"
-               onClick={() => summaryRef.current.downloadPdf()} 
-              onClick={() => setPage(++page)}
-              style={{ background: "none", color: "white" }}
-            >
-              View Patient Summary
-            </Button> */}
-
-            {/* Download as PDF &#8595; */}
           </Box>
         </DialogTitle>
         {page === 0 && (
           <DialogContent
             style={{ maxWidth: "100%", overflowX: "hidden", padding: "10px" }}
           >
+            {submitting ? (
+      <Container
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          width: "100%",
+          justifyContent: "center",
+          alignItems: "center",
+          padding: "40px",
+          minHeight: "300px",
+        }}
+      >
+        <CircularProgress size={60} />
+        <Typography variant="h6" mt={3} style={{ color: "#14706A" }}>
+          Placing your order...
+        </Typography>
+      </Container>
+    ) : ( <>
             {orderLimit && (
               <Box
                 display="flex"
@@ -970,17 +952,17 @@ const CustomField = (props: CustomFieldProps) => {
               <TableHead>
                 <TableRow>
                   <TableCell>Product</TableCell>
-                  <TableCell>Price</TableCell>
+                  {!hidePricing && <TableCell>Price</TableCell>}
                   <TableCell>Qty</TableCell>
-                  <TableCell>Discount</TableCell>
-                  <TableCell>Amount</TableCell>
+                  {!hidePricing && <TableCell>Discount</TableCell>}
+                  {!hidePricing && <TableCell>Amount</TableCell>}
                   <TableCell>Delete</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {orderProducts.length == 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} align="center">
+                    <TableCell colSpan={hidePricing ? 3 : 6} align="center">
                       <Typography color="error" sx={{ flex: 1 }}>
                         No record found! Click the '+' button to add a new
                         record.
@@ -1012,14 +994,16 @@ const CustomField = (props: CustomFieldProps) => {
                         ))}
                       </Select>
                     </TableCell>
-                    <TableCell>
-                      <Typography variant="body1">
-                        {"$" +
-                          Number(orderProduct.price.toFixed(2)).toLocaleString(
-                            "en-US"
-                          )}
-                      </Typography>
-                    </TableCell>
+                    {!hidePricing && (
+                      <TableCell>
+                        <Typography variant="body1">
+                          {"$" +
+                            Number(
+                              orderProduct.price.toFixed(2)
+                            ).toLocaleString("en-US")}
+                        </Typography>
+                      </TableCell>
+                    )}
                     <TableCell>
                       <input
                         id={`quantity-input-${index}`}
@@ -1032,22 +1016,26 @@ const CustomField = (props: CustomFieldProps) => {
                         style={{ width: "60px" }}
                       />
                     </TableCell>
-                    <TableCell>
-                      <Typography
-                        variant="body1"
-                        style={{ padding: "20px 5px", height: "inherit" }}
-                      >
-                        {(orderProduct.discount * 100).toFixed(2)}%
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body1">
-                        {"$" +
-                          Number(orderProduct.amount.toFixed(2)).toLocaleString(
-                            "en-US"
-                          )}
-                      </Typography>
-                    </TableCell>
+                    {!hidePricing && (
+                      <TableCell>
+                        <Typography
+                          variant="body1"
+                          style={{ padding: "20px 5px", height: "inherit" }}
+                        >
+                          {(orderProduct.discount * 100).toFixed(2)}%
+                        </Typography>
+                      </TableCell>
+                    )}
+                    {!hidePricing && (
+                      <TableCell>
+                        <Typography variant="body1">
+                          {"$" +
+                            Number(
+                              orderProduct.amount.toFixed(2)
+                            ).toLocaleString("en-US")}
+                        </Typography>
+                      </TableCell>
+                    )}
                     <TableCell>
                       <IconButton
                         id={`delete-product-${index}`}
@@ -1061,19 +1049,29 @@ const CustomField = (props: CustomFieldProps) => {
                     </TableCell>
                   </TableRow>
                 ))}
-                <TableRow>
-                  <TableCell colSpan={4} align="right">
-                    <Typography variant="body1" style={{ fontWeight: "bold" }}>
-                      Total Amount
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body1" style={{ fontWeight: "bold" }}>
-                      {"$" +
-                        Number(totalAmount.toFixed(2)).toLocaleString("en-US")}
-                    </Typography>
-                  </TableCell>
-                </TableRow>
+                {!hidePricing && (
+                  <TableRow>
+                    <TableCell colSpan={4} align="right">
+                      <Typography
+                        variant="body1"
+                        style={{ fontWeight: "bold" }}
+                      >
+                        Total Amount
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography
+                        variant="body1"
+                        style={{ fontWeight: "bold" }}
+                      >
+                        {"$" +
+                          Number(totalAmount.toFixed(2)).toLocaleString(
+                            "en-US"
+                          )}
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
             <Box display="flex" justifyContent="flex-end" mt={2}>
@@ -1089,6 +1087,84 @@ const CustomField = (props: CustomFieldProps) => {
                 +
               </Button>
             </Box>
+
+            {/* --- START: New Shipping Options Section --- */}
+            {showShippingOptions && (
+              <Box mt={5} p={2} component={Paper} variant="outlined">
+                <Grid container spacing={4} alignItems="flex-start">
+                  {/* Left Side: Shipping Options */}
+                  <Grid item xs={12} md={6}>
+                    <Typography variant="h6" gutterBottom>
+                      Shipping Options
+                    </Typography>
+                    <FormGroup>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={
+                              selectedShippingOption ===
+                              "Ground Freight (1-7 Days) $30/BX"
+                            }
+                            onChange={() =>
+                              handleShippingChange(
+                                "Ground Freight (1-7 Days) $30/BX"
+                              )
+                            }
+                          />
+                        }
+                        label="Ground Freight (1-7 Days) $30/BX"
+                      />
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={
+                              selectedShippingOption === "2-Day Air - $70/BX"
+                            }
+                            onChange={() =>
+                              handleShippingChange("2-Day Air - $70/BX")
+                            }
+                          />
+                        }
+                        label="2-Day Air - $70/BX"
+                      />
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={
+                              selectedShippingOption === "Bill 3rd Party"
+                            }
+                            onChange={() =>
+                              handleShippingChange("Bill 3rd Party")
+                            }
+                          />
+                        }
+                        label="Bill 3rd Party - submit carrier & account number"
+                      />
+                    </FormGroup>
+                    {selectedShippingOption === "Bill 3rd Party" && (
+                      <Box display="flex" gap={2} mt={2} ml={0}>
+                        <TextField
+                          label="Carrier"
+                          variant="outlined"
+                          size="small"
+                          value={thirdPartyCarrier}
+                          onChange={(e) => setThirdPartyCarrier(e.target.value)}
+                        />
+                        <TextField
+                          label="Account Number"
+                          variant="outlined"
+                          size="small"
+                          value={thirdPartyAccount}
+                          onChange={(e) => setThirdPartyAccount(e.target.value)}
+                        />
+                      </Box>
+                    )}
+                  </Grid>
+                  {/* Right Side: Invoicing Email */}
+                </Grid>
+              </Box>
+            )}
+            {/* --- END: New Shipping Options Section --- */}
 
             <Typography variant="body1" sx={{ mb: 1 }} mt={5}>
               Write your comments here
@@ -1186,18 +1262,28 @@ const CustomField = (props: CustomFieldProps) => {
                   background: "#14706A",
                   color: "white",
                   "&.Mui-disabled": {
-                    background: "#ccc", // Disabled background color
-                    color: "#666", // Disabled text color
+                    background: "#ccc",
+                    color: "#666",
                   },
                 }}
-                disabled={
-                  /* data?.account?.FacilityType === "SNF" ||  */ orderLimit ===
-                    true || warning === true
-                }
+                disabled={orderLimit === true || warning === true}
               >
                 Submit
               </Button>
+                    <Button
+                id="send-email-btn"
+                style={{
+                  width: "15vw",
+                  backgroundColor: "#1d343d",
+                  color: "white",
+                }}
+                onClick={() => setPage(2)}
+              >
+                Next
+              </Button>
             </Box>
+              </>
+            )}
           </DialogContent>
         )}
         {page === 1 && (
@@ -1214,6 +1300,14 @@ const CustomField = (props: CustomFieldProps) => {
               five={five}
               patient={data?.patient}
             />
+          </DialogContent>
+        )}
+
+        {page === 2 && (
+          <DialogContent
+            style={{ maxWidth: "100%", overflowX: "hidden", padding: "10px" }}
+          >
+            <CheckoutForm/>
           </DialogContent>
         )}
         <Dialog
@@ -1259,7 +1353,9 @@ const CustomField = (props: CustomFieldProps) => {
               >
                 Send
               </Button>
+        
             </Box>
+            
           </DialogContent>
         </Dialog>
       </Dialog>
