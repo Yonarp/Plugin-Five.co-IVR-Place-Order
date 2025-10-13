@@ -94,7 +94,8 @@ const CustomField = (props: CustomFieldProps) => {
         selectedParentProduct === "product" ? data.product : data.product2;
       if (
         currentProduct &&
-        ACTIGRAFT_PRODUCT_KEYS.includes(currentProduct.___PRD)
+        ACTIGRAFT_PRODUCT_KEYS.includes(currentProduct.___PRD) &&
+        data?.product?.Brand === 'ActiGraft'
       ) {
         isActigraft = true;
       }
@@ -231,6 +232,7 @@ const CustomField = (props: CustomFieldProps) => {
         null,
         async (result) => {
           const response = JSON.parse(result.serverResponse.results);
+          console.log("Logging Response From Products of get IVR Details -->", response)
           if (response.product) {
             setSelectedParentProduct("product");
             setProductList(filterProductList(response.productList));
