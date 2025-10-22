@@ -95,7 +95,7 @@ const CustomField = (props: CustomFieldProps) => {
       if (
         currentProduct &&
         ACTIGRAFT_PRODUCT_KEYS.includes(currentProduct.___PRD) &&
-        data?.product?.Brand === 'ActiGraft'
+        data?.product?.Brand === "ActiGraft"
       ) {
         isActigraft = true;
       }
@@ -154,7 +154,7 @@ const CustomField = (props: CustomFieldProps) => {
       ShippingAccount: thirdPartyAccount,
     };
 
-    setSubmitting(true)
+    setSubmitting(true);
     await five.executeFunction(
       "pushOrder",
       //@ts-ignore
@@ -163,11 +163,10 @@ const CustomField = (props: CustomFieldProps) => {
       null,
       null,
       () => {
-        setSubmitting(false)
+        setSubmitting(false);
         handleDialogClose();
       }
     );
-    
   };
 
   const handleSendEmail = async () => {
@@ -232,7 +231,10 @@ const CustomField = (props: CustomFieldProps) => {
         null,
         async (result) => {
           const response = JSON.parse(result.serverResponse.results);
-          console.log("Logging Response From Products of get IVR Details -->", response)
+          console.log(
+            "Logging Response From Products of get IVR Details -->",
+            response
+          );
           if (response.product) {
             setSelectedParentProduct("product");
             setProductList(filterProductList(response.productList));
@@ -422,8 +424,15 @@ const CustomField = (props: CustomFieldProps) => {
         ? selectedProduct.FutureBillRate
         : selectedProduct.BillRate;
 
+      if (
+        useFutureRate &&
+        (price === null || price === undefined || price === "")
+      ) {
+        price = selectedProduct.BillRate;
+      }
+
       if (price === null || price === undefined || price === "") {
-        price = 0;
+        price = newOrderProducts[index].price || 0;
       }
 
       const currentMainProduct =
@@ -510,22 +519,32 @@ const CustomField = (props: CustomFieldProps) => {
         ? matchedProduct.FutureBillRate
         : matchedProduct.BillRate;
 
+      if (
+        useFutureRate &&
+        (price === null || price === undefined || price === "")
+      ) {
+        price = matchedProduct.BillRate;
+      }
+
       if (price === null || price === undefined || price === "") {
-        price = 0;
+        price = op.price;
       }
 
       const currentMainProduct =
         selectedParentProduct === "product" ? data.product : data.product2;
       const brand = currentMainProduct?.Brand || "Unknown";
       const discount = discountPercentages[brand] || 0;
-      const newAmount = price * op.qty * (1 - discount);
+
+      // FIX: Use op.qty with a fallback to prevent undefined multiplication
+      const qty = op.qty || 0;
+      const newAmount = price * qty * (1 - discount);
 
       return {
         ...op,
         price,
+        discount, // ADD THIS LINE - preserve discount in the updated product
         amount: newAmount,
       };
-      
     });
 
     setOrderProducts(updatedProducts);
@@ -641,638 +660,660 @@ const CustomField = (props: CustomFieldProps) => {
             style={{ maxWidth: "100%", overflowX: "hidden", padding: "10px" }}
           >
             {submitting ? (
-      <Container
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          width: "100%",
-          justifyContent: "center",
-          alignItems: "center",
-          padding: "40px",
-          minHeight: "300px",
-        }}
-      >
-        <CircularProgress size={60} />
-        <Typography variant="h6" mt={3} style={{ color: "#14706A" }}>
-          Placing your order...
-        </Typography>
-      </Container>
-    ) : ( <>
-            {orderLimit && (
-              <Box
-                display="flex"
-                flexDirection="row"
-                justifyContent="space-between"
-                alignItems="center"
-                sx={{
-                  width: "100%",
-                }}
-              >
-                <Alert
-                  severity="warning"
-                  sx={{ mt: 2, fontWeight: "bold", flex: 2 }}
-                >
-                  {orders.length} orders have previously been submitted for this
-                  IVR. Are you sure you would like to continue?
-                </Alert>
-                <Button
-                  sx={{
-                    background: "#14706A",
-                    color: "white",
-                    marginTop: "10px",
-                    marginLeft: "5px",
-                  }}
-                  onClick={handleOrderDialog}
-                >
-                  Yes
-                </Button>
-              </Box>
-            )}
-
-            {warning && (
-              <Box
-                display="flex"
-                flexDirection="row"
-                justifyContent="space-between"
-                alignItems="center"
-                sx={{
-                  width: "100%",
-                }}
-              >
-                <Alert
-                  severity="warning"
-                  sx={{ mt: 2, fontWeight: "bold", flex: 2 }}
-                >
-                  The approval date is greater than 12 weeks, Are you sure you
-                  would like to continue?
-                </Alert>
-                <Button
-                  sx={{
-                    background: "#14706A",
-                    color: "white",
-                    marginTop: "10px",
-                    marginLeft: "5px",
-                  }}
-                  onClick={() => setWarning(false)}
-                >
-                  Yes
-                </Button>
-              </Box>
-            )}
-
-            <Typography variant="h6" mt={5}>
-              Details:{" "}
-            </Typography>
-            <TableContainer component={Paper}>
-              <Table>
-                <TableBody style={{ border: "1px solid black" }}>
-                  <TableRow>
-                    <TableCell
-                      component="th"
-                      scope="row"
-                      style={{ width: "25%" }}
-                    >
-                      <strong>Patient: </strong>
-                    </TableCell>
-                    <TableCell
-                      component="th"
-                      scope="row"
-                      style={{ width: "25%" }}
-                    >
-                      {data?.ivr?.Patient}
-                    </TableCell>
-                    <TableCell
-                      component="th"
-                      scope="row"
-                      style={{ width: "25%" }}
-                    >
-                      <Typography
-                        component="th"
-                        onClick={() => setPage(page + 1)}
-                        sx={{
-                          cursor: "pointer",
-                          background: "#14706A",
-                          padding: "10px",
-                          color: "white",
-                          textAlign: "center",
-                          fontSize: "16px",
-                          fontWeight: "bold",
-                          borderRadius: "5px",
-                          transition: "color 0.2s, text-decoration 0.2s",
-                          "&:hover": {
-                            background: "#0F5E50", // darker teal on hover
-                          },
-                        }}
-                      >
-                        View Patient Benefit Summary
-                      </Typography>
-                    </TableCell>
-                    <TableCell
-                      component="th"
-                      scope="row"
-                      style={{ width: "25%" }}
-                    ></TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell
-                      component="th"
-                      scope="row"
-                      style={{ width: "25%" }}
-                    >
-                      <strong>Products:</strong>
-                    </TableCell>
-                    <TableCell style={{ width: "25%" }}>
-                      <Select
-                        id="parent-product-select"
-                        value={selectedParentProduct}
-                        onChange={handleParentProductChange}
-                        fullWidth
-                      >
-                        {data?.product && (
-                          <MenuItem id="product1-option" value="product">
-                            {data?.product?.Brand + "-" + data?.product?.QCode}
-                          </MenuItem>
-                        )}
-                        {data?.product2 && (
-                          <MenuItem id="product2-option" value="product2">
-                            {data?.product2?.Brand +
-                              "-" +
-                              data?.product2?.QCode}
-                          </MenuItem>
-                        )}
-                      </Select>
-                    </TableCell>
-                    <TableCell
-                      component="th"
-                      scope="row"
-                      style={{ width: "25%" }}
-                    >
-                      <strong>Wound Size (CM²):</strong>
-                    </TableCell>
-                    <TableCell style={{ width: "25%" }}>
-                      {data?.ivr?.WoundSizeCalc}
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell
-                      component="th"
-                      scope="row"
-                      style={{ width: "25%" }}
-                    >
-                      <strong>Wound Type:</strong>
-                    </TableCell>
-                    <TableCell style={{ width: "25%" }}>
-                      {data?.ivr?.WoundType}
-                    </TableCell>
-                    <TableCell
-                      component="th"
-                      scope="row"
-                      style={{ width: "25%" }}
-                    >
-                      <strong>Account:</strong>
-                    </TableCell>
-                    <TableCell style={{ width: "25%" }}>
-                      {data?.ivr?.Account}
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell
-                      component="th"
-                      scope="row"
-                      style={{ width: "25%" }}
-                    >
-                      <strong>Approval Date:</strong>
-                    </TableCell>
-                    <TableCell style={{ width: "25%" }}>
-                      {data?.ivr?.ApprovalDate}
-                    </TableCell>
-                    <TableCell
-                      component="th"
-                      scope="row"
-                      style={{ width: "25%" }}
-                    >
-                      <strong>Date Of Service:</strong>
-                    </TableCell>
-                    <TableCell style={{ width: "25%" }}>
-                      <TextField
-                        id="service-date-input"
-                        type="date"
-                        defaultValue={data?.ivr?.Date}
-                        onChange={(e) => handleDateChange(e.target.value)}
-                        InputProps={{
-                          style: { fontSize: "0.875rem" },
-                        }}
-                      />
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell
-                      component="th"
-                      scope="row"
-                      style={{ width: "25%" }}
-                    >
-                      <strong>Place Of Service:</strong>
-                    </TableCell>
-                    <TableCell style={{ width: "25%" }}>
-                      {data?.ivr?.PlaceofService}
-                    </TableCell>
-                    <TableCell
-                      component="th"
-                      scope="row"
-                      style={{ width: "25%" }}
-                    >
-                      <strong>MAC:</strong>
-                    </TableCell>
-                    <TableCell style={{ width: "25%" }}>{mac}</TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </TableContainer>
-            <Typography variant="h6" mt={5}>
-              Address:{" "}
-            </Typography>
-            <TableContainer style={{ marginTop: "20px" }} component={Paper}>
-              <Table>
-                <TableBody style={{ border: "1px solid black" }}>
-                  <TableRow>
-                    <TableCell
-                      component="th"
-                      scope="row"
-                      style={{ width: "50%", verticalAlign: "top" }}
-                    >
-                      <strong>Shipping Address:</strong>
-                      <Select
-                        id="shipping-address-select"
-                        value={JSON.stringify({
-                          address: fullAddress,
-                          ADD: selectedAddress,
-                          Name: addressName,
-                        })}
-                        onChange={handleAddressChange}
-                        displayEmpty
-                        fullWidth
-                        style={{ marginTop: "8px" }}
-                      >
-                        {data?.address.map((address, index) => (
-                          <MenuItem
-                            id={`address-option-${index}`}
-                            key={address.___ADD}
-                            value={JSON.stringify({
-                              address: address,
-                              ADD: address.___ADD,
-                              Name: address.AddressName,
-                            })}
-                          >
-                            {address.AddressName}
-                            <br />
-                            {address.AddressStreet + " " + address.AddressCity}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </TableCell>
-                    <TableCell style={{ width: "50%", verticalAlign: "top" }}>
-                      <strong>Address:</strong>
-                      <br />
-                      Legacy Medical Consultants
-                      <br />
-                      9800 Hillwood Parkway, Suite 320
-                      <br />
-                      Fort Worth, TX 76177
-                      <br />
-                      p. 817-961-1288 f. 866-300-0431
-                      <br />
-                      customerservice@legacymedicalconsultants.com
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </TableContainer>
-            <Typography variant="h6" mt={5}>
-              Please Select the Desired Products for the Order
-            </Typography>
-            <Table id="products-table">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Product</TableCell>
-                  {!hidePricing && <TableCell>Price</TableCell>}
-                  <TableCell>Qty</TableCell>
-                  {!hidePricing && <TableCell>Discount</TableCell>}
-                  {!hidePricing && <TableCell>Amount</TableCell>}
-                  <TableCell>Delete</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {orderProducts.length == 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={hidePricing ? 3 : 6} align="center">
-                      <Typography color="error" sx={{ flex: 1 }}>
-                        No record found! Click the '+' button to add a new
-                        record.
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                ) : null}
-                {orderProducts.map((orderProduct, index) => (
-                  <TableRow id={`product-row-${index}`} key={index}>
-                    <TableCell>
-                      <Select
-                        id={`product-select-${index}`}
-                        value={orderProduct.product}
-                        onChange={(e) =>
-                          handleProductChange(index, "product", e.target.value)
-                        }
-                        displayEmpty
-                        fullWidth
-                      >
-                        <MenuItem value="">Select Product</MenuItem>
-                        {productList.map((product, prodIndex) => (
-                          <MenuItem
-                            id={`product-option-${index}-${prodIndex}`}
-                            key={product.___PRD}
-                            value={product.___PRD}
-                          >
-                            {product.Product} - {product.Description}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </TableCell>
-                    {!hidePricing && (
-                      <TableCell>
-                        <Typography variant="body1">
-                          {"$" +
-                            Number(
-                              orderProduct.price.toFixed(2)
-                            ).toLocaleString("en-US")}
-                        </Typography>
-                      </TableCell>
-                    )}
-                    <TableCell>
-                      <input
-                        id={`quantity-input-${index}`}
-                        type="number"
-                        value={orderProduct.qty}
-                        onChange={(e) =>
-                          handleProductChange(index, "qty", e.target.value)
-                        }
-                        min="1"
-                        style={{ width: "60px" }}
-                      />
-                    </TableCell>
-                    {!hidePricing && (
-                      <TableCell>
-                        <Typography
-                          variant="body1"
-                          style={{ padding: "20px 5px", height: "inherit" }}
-                        >
-                          {(orderProduct.discount * 100).toFixed(2)}%
-                        </Typography>
-                      </TableCell>
-                    )}
-                    {!hidePricing && (
-                      <TableCell>
-                        <Typography variant="body1">
-                          {"$" +
-                            Number(
-                              orderProduct.amount.toFixed(2)
-                            ).toLocaleString("en-US")}
-                        </Typography>
-                      </TableCell>
-                    )}
-                    <TableCell>
-                      <IconButton
-                        id={`delete-product-${index}`}
-                        onClick={() => handleDelete(index)}
-                        style={{ color: "red" }}
-                      >
-                        <Typography variant="body2" style={{ color: "red" }}>
-                          Delete
-                        </Typography>
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {!hidePricing && (
-                  <TableRow>
-                    <TableCell colSpan={4} align="right">
-                      <Typography
-                        variant="body1"
-                        style={{ fontWeight: "bold" }}
-                      >
-                        Total Amount
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography
-                        variant="body1"
-                        style={{ fontWeight: "bold" }}
-                      >
-                        {"$" +
-                          Number(totalAmount.toFixed(2)).toLocaleString(
-                            "en-US"
-                          )}
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-            <Box display="flex" justifyContent="flex-end" mt={2}>
-              <Button
-                id="add-product-btn"
-                onClick={handleAddProductRow}
+              <Container
                 style={{
-                  background: "#D8EEDA",
-                  color: "#157069",
-                  borderRadius: "50px",
+                  display: "flex",
+                  flexDirection: "column",
+                  width: "100%",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  padding: "40px",
+                  minHeight: "300px",
                 }}
               >
-                +
-              </Button>
-            </Box>
+                <CircularProgress size={60} />
+                <Typography variant="h6" mt={3} style={{ color: "#14706A" }}>
+                  Placing your order...
+                </Typography>
+              </Container>
+            ) : (
+              <>
+                {orderLimit && (
+                  <Box
+                    display="flex"
+                    flexDirection="row"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    sx={{
+                      width: "100%",
+                    }}
+                  >
+                    <Alert
+                      severity="warning"
+                      sx={{ mt: 2, fontWeight: "bold", flex: 2 }}
+                    >
+                      {orders.length} orders have previously been submitted for
+                      this IVR. Are you sure you would like to continue?
+                    </Alert>
+                    <Button
+                      sx={{
+                        background: "#14706A",
+                        color: "white",
+                        marginTop: "10px",
+                        marginLeft: "5px",
+                      }}
+                      onClick={handleOrderDialog}
+                    >
+                      Yes
+                    </Button>
+                  </Box>
+                )}
 
-            {/* --- START: New Shipping Options Section --- */}
-            {showShippingOptions && (
-              <Box mt={5} p={2} component={Paper} variant="outlined">
-                <Grid container spacing={4} alignItems="flex-start">
-                  {/* Left Side: Shipping Options */}
-                  <Grid item xs={12} md={6}>
-                    <Typography variant="h6" gutterBottom>
-                      Shipping Options
-                    </Typography>
-                    <FormGroup>
-                      <FormControlLabel
-                        control={
-                          <Checkbox
-                            checked={
-                              selectedShippingOption ===
-                              "Ground Freight (1-7 Days) $30/BX"
-                            }
-                            onChange={() =>
-                              handleShippingChange(
-                                "Ground Freight (1-7 Days) $30/BX"
+                {warning && (
+                  <Box
+                    display="flex"
+                    flexDirection="row"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    sx={{
+                      width: "100%",
+                    }}
+                  >
+                    <Alert
+                      severity="warning"
+                      sx={{ mt: 2, fontWeight: "bold", flex: 2 }}
+                    >
+                      The approval date is greater than 12 weeks, Are you sure
+                      you would like to continue?
+                    </Alert>
+                    <Button
+                      sx={{
+                        background: "#14706A",
+                        color: "white",
+                        marginTop: "10px",
+                        marginLeft: "5px",
+                      }}
+                      onClick={() => setWarning(false)}
+                    >
+                      Yes
+                    </Button>
+                  </Box>
+                )}
+
+                <Typography variant="h6" mt={5}>
+                  Details:{" "}
+                </Typography>
+                <TableContainer component={Paper}>
+                  <Table>
+                    <TableBody style={{ border: "1px solid black" }}>
+                      <TableRow>
+                        <TableCell
+                          component="th"
+                          scope="row"
+                          style={{ width: "25%" }}
+                        >
+                          <strong>Patient: </strong>
+                        </TableCell>
+                        <TableCell
+                          component="th"
+                          scope="row"
+                          style={{ width: "25%" }}
+                        >
+                          {data?.ivr?.Patient}
+                        </TableCell>
+                        <TableCell
+                          component="th"
+                          scope="row"
+                          style={{ width: "25%" }}
+                        >
+                          <Typography
+                            component="th"
+                            onClick={() => setPage(page + 1)}
+                            sx={{
+                              cursor: "pointer",
+                              background: "#14706A",
+                              padding: "10px",
+                              color: "white",
+                              textAlign: "center",
+                              fontSize: "16px",
+                              fontWeight: "bold",
+                              borderRadius: "5px",
+                              transition: "color 0.2s, text-decoration 0.2s",
+                              "&:hover": {
+                                background: "#0F5E50", // darker teal on hover
+                              },
+                            }}
+                          >
+                            View Patient Benefit Summary
+                          </Typography>
+                        </TableCell>
+                        <TableCell
+                          component="th"
+                          scope="row"
+                          style={{ width: "25%" }}
+                        ></TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell
+                          component="th"
+                          scope="row"
+                          style={{ width: "25%" }}
+                        >
+                          <strong>Products:</strong>
+                        </TableCell>
+                        <TableCell style={{ width: "25%" }}>
+                          <Select
+                            id="parent-product-select"
+                            value={selectedParentProduct}
+                            onChange={handleParentProductChange}
+                            fullWidth
+                          >
+                            {data?.product && (
+                              <MenuItem id="product1-option" value="product">
+                                {data?.product?.Brand +
+                                  "-" +
+                                  data?.product?.QCode}
+                              </MenuItem>
+                            )}
+                            {data?.product2 && (
+                              <MenuItem id="product2-option" value="product2">
+                                {data?.product2?.Brand +
+                                  "-" +
+                                  data?.product2?.QCode}
+                              </MenuItem>
+                            )}
+                          </Select>
+                        </TableCell>
+                        <TableCell
+                          component="th"
+                          scope="row"
+                          style={{ width: "25%" }}
+                        >
+                          <strong>Wound Size (CM²):</strong>
+                        </TableCell>
+                        <TableCell style={{ width: "25%" }}>
+                          {data?.ivr?.WoundSizeCalc}
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell
+                          component="th"
+                          scope="row"
+                          style={{ width: "25%" }}
+                        >
+                          <strong>Wound Type:</strong>
+                        </TableCell>
+                        <TableCell style={{ width: "25%" }}>
+                          {data?.ivr?.WoundType}
+                        </TableCell>
+                        <TableCell
+                          component="th"
+                          scope="row"
+                          style={{ width: "25%" }}
+                        >
+                          <strong>Account:</strong>
+                        </TableCell>
+                        <TableCell style={{ width: "25%" }}>
+                          {data?.ivr?.Account}
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell
+                          component="th"
+                          scope="row"
+                          style={{ width: "25%" }}
+                        >
+                          <strong>Approval Date:</strong>
+                        </TableCell>
+                        <TableCell style={{ width: "25%" }}>
+                          {data?.ivr?.ApprovalDate}
+                        </TableCell>
+                        <TableCell
+                          component="th"
+                          scope="row"
+                          style={{ width: "25%" }}
+                        >
+                          <strong>Date Of Service:</strong>
+                        </TableCell>
+                        <TableCell style={{ width: "25%" }}>
+                          <TextField
+                            id="service-date-input"
+                            type="date"
+                            defaultValue={data?.ivr?.Date}
+                            onChange={(e) => handleDateChange(e.target.value)}
+                            InputProps={{
+                              style: { fontSize: "0.875rem" },
+                            }}
+                          />
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell
+                          component="th"
+                          scope="row"
+                          style={{ width: "25%" }}
+                        >
+                          <strong>Place Of Service:</strong>
+                        </TableCell>
+                        <TableCell style={{ width: "25%" }}>
+                          {data?.ivr?.PlaceofService}
+                        </TableCell>
+                        <TableCell
+                          component="th"
+                          scope="row"
+                          style={{ width: "25%" }}
+                        >
+                          <strong>MAC:</strong>
+                        </TableCell>
+                        <TableCell style={{ width: "25%" }}>{mac}</TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+                <Typography variant="h6" mt={5}>
+                  Address:{" "}
+                </Typography>
+                <TableContainer style={{ marginTop: "20px" }} component={Paper}>
+                  <Table>
+                    <TableBody style={{ border: "1px solid black" }}>
+                      <TableRow>
+                        <TableCell
+                          component="th"
+                          scope="row"
+                          style={{ width: "50%", verticalAlign: "top" }}
+                        >
+                          <strong>Shipping Address:</strong>
+                          <Select
+                            id="shipping-address-select"
+                            value={JSON.stringify({
+                              address: fullAddress,
+                              ADD: selectedAddress,
+                              Name: addressName,
+                            })}
+                            onChange={handleAddressChange}
+                            displayEmpty
+                            fullWidth
+                            style={{ marginTop: "8px" }}
+                          >
+                            {data?.address.map((address, index) => (
+                              <MenuItem
+                                id={`address-option-${index}`}
+                                key={address.___ADD}
+                                value={JSON.stringify({
+                                  address: address,
+                                  ADD: address.___ADD,
+                                  Name: address.AddressName,
+                                })}
+                              >
+                                {address.AddressName}
+                                <br />
+                                {address.AddressStreet +
+                                  " " +
+                                  address.AddressCity}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </TableCell>
+                        <TableCell
+                          style={{ width: "50%", verticalAlign: "top" }}
+                        >
+                          <strong>Address:</strong>
+                          <br />
+                          Legacy Medical Consultants
+                          <br />
+                          9800 Hillwood Parkway, Suite 320
+                          <br />
+                          Fort Worth, TX 76177
+                          <br />
+                          p. 817-961-1288 f. 866-300-0431
+                          <br />
+                          customerservice@legacymedicalconsultants.com
+                        </TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+                <Typography variant="h6" mt={5}>
+                  Please Select the Desired Products for the Order
+                </Typography>
+                <Table id="products-table">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Product</TableCell>
+                      {!hidePricing && <TableCell>Price</TableCell>}
+                      <TableCell>Qty</TableCell>
+                      {!hidePricing && <TableCell>Discount</TableCell>}
+                      {!hidePricing && <TableCell>Amount</TableCell>}
+                      <TableCell>Delete</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {orderProducts.length == 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={hidePricing ? 3 : 6} align="center">
+                          <Typography color="error" sx={{ flex: 1 }}>
+                            No record found! Click the '+' button to add a new
+                            record.
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    ) : null}
+                    {orderProducts.map((orderProduct, index) => (
+                      <TableRow id={`product-row-${index}`} key={index}>
+                        <TableCell>
+                          <Select
+                            id={`product-select-${index}`}
+                            value={orderProduct.product}
+                            onChange={(e) =>
+                              handleProductChange(
+                                index,
+                                "product",
+                                e.target.value
                               )
                             }
+                            displayEmpty
+                            fullWidth
+                          >
+                            <MenuItem value="">Select Product</MenuItem>
+                            {productList.map((product, prodIndex) => (
+                              <MenuItem
+                                id={`product-option-${index}-${prodIndex}`}
+                                key={product.___PRD}
+                                value={product.___PRD}
+                              >
+                                {product.Product} - {product.Description}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </TableCell>
+                        {!hidePricing && (
+                          <TableCell>
+                            <Typography variant="body1">
+                              {"$" +
+                                Number(
+                                  orderProduct.price.toFixed(2)
+                                ).toLocaleString("en-US")}
+                            </Typography>
+                          </TableCell>
+                        )}
+                        <TableCell>
+                          <input
+                            id={`quantity-input-${index}`}
+                            type="number"
+                            value={orderProduct.qty}
+                            onChange={(e) =>
+                              handleProductChange(index, "qty", e.target.value)
+                            }
+                            min="1"
+                            style={{ width: "60px" }}
                           />
-                        }
-                        label="Ground Freight (1-7 Days) $30/BX"
-                      />
-                      <FormControlLabel
-                        control={
-                          <Checkbox
-                            checked={
-                              selectedShippingOption === "2-Day Air - $70/BX"
-                            }
-                            onChange={() =>
-                              handleShippingChange("2-Day Air - $70/BX")
-                            }
-                          />
-                        }
-                        label="2-Day Air - $70/BX"
-                      />
-                      <FormControlLabel
-                        control={
-                          <Checkbox
-                            checked={
-                              selectedShippingOption === "Bill 3rd Party"
-                            }
-                            onChange={() =>
-                              handleShippingChange("Bill 3rd Party")
-                            }
-                          />
-                        }
-                        label="Bill 3rd Party - submit carrier & account number"
-                      />
-                    </FormGroup>
-                    {selectedShippingOption === "Bill 3rd Party" && (
-                      <Box display="flex" gap={2} mt={2} ml={0}>
-                        <TextField
-                          label="Carrier"
-                          variant="outlined"
-                          size="small"
-                          value={thirdPartyCarrier}
-                          onChange={(e) => setThirdPartyCarrier(e.target.value)}
-                        />
-                        <TextField
-                          label="Account Number"
-                          variant="outlined"
-                          size="small"
-                          value={thirdPartyAccount}
-                          onChange={(e) => setThirdPartyAccount(e.target.value)}
-                        />
-                      </Box>
+                        </TableCell>
+                        {!hidePricing && (
+                          <TableCell>
+                            <Typography
+                              variant="body1"
+                              style={{ padding: "20px 5px", height: "inherit" }}
+                            >
+                              {(orderProduct.discount * 100).toFixed(2)}%
+                            </Typography>
+                          </TableCell>
+                        )}
+                        {!hidePricing && (
+                          <TableCell>
+                            <Typography variant="body1">
+                              {"$" +
+                                Number(
+                                  orderProduct.amount.toFixed(2)
+                                ).toLocaleString("en-US")}
+                            </Typography>
+                          </TableCell>
+                        )}
+                        <TableCell>
+                          <IconButton
+                            id={`delete-product-${index}`}
+                            onClick={() => handleDelete(index)}
+                            style={{ color: "red" }}
+                          >
+                            <Typography
+                              variant="body2"
+                              style={{ color: "red" }}
+                            >
+                              Delete
+                            </Typography>
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {!hidePricing && (
+                      <TableRow>
+                        <TableCell colSpan={4} align="right">
+                          <Typography
+                            variant="body1"
+                            style={{ fontWeight: "bold" }}
+                          >
+                            Total Amount
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography
+                            variant="body1"
+                            style={{ fontWeight: "bold" }}
+                          >
+                            {"$" +
+                              Number(totalAmount.toFixed(2)).toLocaleString(
+                                "en-US"
+                              )}
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
                     )}
-                  </Grid>
-                  {/* Right Side: Invoicing Email */}
-                </Grid>
-              </Box>
-            )}
-            {/* --- END: New Shipping Options Section --- */}
+                  </TableBody>
+                </Table>
+                <Box display="flex" justifyContent="flex-end" mt={2}>
+                  <Button
+                    id="add-product-btn"
+                    onClick={handleAddProductRow}
+                    style={{
+                      background: "#D8EEDA",
+                      color: "#157069",
+                      borderRadius: "50px",
+                    }}
+                  >
+                    +
+                  </Button>
+                </Box>
 
-            <Typography variant="body1" sx={{ mb: 1 }} mt={5}>
-              Write your comments here
-            </Typography>
-            <TextField
-              id="comments-input"
-              fullWidth
-              value={comment}
-              multiline
-              onChange={handleComment}
-              rows={4}
-              variant="outlined"
-              placeholder="Comments..."
-            />
-            {data?.account?.FacilityType === "SNF" ? (
-              <Box mt={5}>
-                <Typography
-                  variant="body1"
-                  style={{
-                    fontSize: "1.4rem",
-                    fontWeight: "600",
-                    fontStyle: "bold",
-                  }}
-                >
-                  Disclaimer
+                {/* --- START: New Shipping Options Section --- */}
+                {showShippingOptions && (
+                  <Box mt={5} p={2} component={Paper} variant="outlined">
+                    <Grid container spacing={4} alignItems="flex-start">
+                      {/* Left Side: Shipping Options */}
+                      <Grid item xs={12} md={6}>
+                        <Typography variant="h6" gutterBottom>
+                          Shipping Options
+                        </Typography>
+                        <FormGroup>
+                          <FormControlLabel
+                            control={
+                              <Checkbox
+                                checked={
+                                  selectedShippingOption ===
+                                  "Ground Freight (1-7 Days) $30/BX"
+                                }
+                                onChange={() =>
+                                  handleShippingChange(
+                                    "Ground Freight (1-7 Days) $30/BX"
+                                  )
+                                }
+                              />
+                            }
+                            label="Ground Freight (1-7 Days) $30/BX"
+                          />
+                          <FormControlLabel
+                            control={
+                              <Checkbox
+                                checked={
+                                  selectedShippingOption ===
+                                  "2-Day Air - $70/BX"
+                                }
+                                onChange={() =>
+                                  handleShippingChange("2-Day Air - $70/BX")
+                                }
+                              />
+                            }
+                            label="2-Day Air - $70/BX"
+                          />
+                          <FormControlLabel
+                            control={
+                              <Checkbox
+                                checked={
+                                  selectedShippingOption === "Bill 3rd Party"
+                                }
+                                onChange={() =>
+                                  handleShippingChange("Bill 3rd Party")
+                                }
+                              />
+                            }
+                            label="Bill 3rd Party - submit carrier & account number"
+                          />
+                        </FormGroup>
+                        {selectedShippingOption === "Bill 3rd Party" && (
+                          <Box display="flex" gap={2} mt={2} ml={0}>
+                            <TextField
+                              label="Carrier"
+                              variant="outlined"
+                              size="small"
+                              value={thirdPartyCarrier}
+                              onChange={(e) =>
+                                setThirdPartyCarrier(e.target.value)
+                              }
+                            />
+                            <TextField
+                              label="Account Number"
+                              variant="outlined"
+                              size="small"
+                              value={thirdPartyAccount}
+                              onChange={(e) =>
+                                setThirdPartyAccount(e.target.value)
+                              }
+                            />
+                          </Box>
+                        )}
+                      </Grid>
+                      {/* Right Side: Invoicing Email */}
+                    </Grid>
+                  </Box>
+                )}
+                {/* --- END: New Shipping Options Section --- */}
+
+                <Typography variant="body1" sx={{ mb: 1 }} mt={5}>
+                  Write your comments here
                 </Typography>
-                <Typography
-                  variant="body2"
-                  style={{
-                    fontSize: "1rem",
-                    fontWeight: "500",
-                  }}
-                >
-                  By placing this order, the user acknowledges and agrees that
-                  orders for products placed through this system are contingent
-                  upon the patient's eligibility and authorization status as
-                  determined by the original submission.{" "}
-                  <strong>
-                    It is the responsibility of the practitioner to verify that
-                    no changes have occurred to the patient's eligibility or
-                    authorization status
-                  </strong>{" "}
-                  that would impact their qualification for the products
-                  ordered.
-                  <br />
-                  <br />
-                  The portal does not automatically verify any change in
-                  eligibility or authorization status. By placing an order, the
-                  practitioner certifies that they have independently verified
-                  the patient's current eligibility. Any orders placed under
-                  incorrect eligibility assumptions remain the sole
-                  responsibility of the facility, and Legacy Medical Consultants
-                  shall not be liable for orders made under changed eligibility
-                  circumstances.
-                </Typography>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      id="disclaimer-checkbox"
-                      checked={disclaimerChecked}
-                      onChange={(e) => setDisclaimerChecked(e.target.checked)}
-                    />
-                  }
-                  label="I agree to the disclaimer"
+                <TextField
+                  id="comments-input"
+                  fullWidth
+                  value={comment}
+                  multiline
+                  onChange={handleComment}
+                  rows={4}
+                  variant="outlined"
+                  placeholder="Comments..."
                 />
-              </Box>
-            ) : (
-              <Box mt={1}>
-                <Typography
-                  variant="caption"
-                  display="block"
-                  gutterBottom
-                  style={{ fontSize: "0.65rem" }}
-                >
-                  Disclaimer: Please note that all prices are estimates and may
-                  vary based on final assessment or additional factors.
-                </Typography>
-              </Box>
-            )}
+                {data?.account?.FacilityType === "SNF" ? (
+                  <Box mt={5}>
+                    <Typography
+                      variant="body1"
+                      style={{
+                        fontSize: "1.4rem",
+                        fontWeight: "600",
+                        fontStyle: "bold",
+                      }}
+                    >
+                      Disclaimer
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      style={{
+                        fontSize: "1rem",
+                        fontWeight: "500",
+                      }}
+                    >
+                      By placing this order, the user acknowledges and agrees
+                      that orders for products placed through this system are
+                      contingent upon the patient's eligibility and
+                      authorization status as determined by the original
+                      submission.{" "}
+                      <strong>
+                        It is the responsibility of the practitioner to verify
+                        that no changes have occurred to the patient's
+                        eligibility or authorization status
+                      </strong>{" "}
+                      that would impact their qualification for the products
+                      ordered.
+                      <br />
+                      <br />
+                      The portal does not automatically verify any change in
+                      eligibility or authorization status. By placing an order,
+                      the practitioner certifies that they have independently
+                      verified the patient's current eligibility. Any orders
+                      placed under incorrect eligibility assumptions remain the
+                      sole responsibility of the facility, and Legacy Medical
+                      Consultants shall not be liable for orders made under
+                      changed eligibility circumstances.
+                    </Typography>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          id="disclaimer-checkbox"
+                          checked={disclaimerChecked}
+                          onChange={(e) =>
+                            setDisclaimerChecked(e.target.checked)
+                          }
+                        />
+                      }
+                      label="I agree to the disclaimer"
+                    />
+                  </Box>
+                ) : (
+                  <Box mt={1}>
+                    <Typography
+                      variant="caption"
+                      display="block"
+                      gutterBottom
+                      style={{ fontSize: "0.65rem" }}
+                    >
+                      Disclaimer: Please note that all prices are estimates and
+                      may vary based on final assessment or additional factors.
+                    </Typography>
+                  </Box>
+                )}
 
-            <Box display="flex" justifyContent="space-between" mt={2}>
-              <Button
-                id="cancel-order-btn"
-                variant="contained"
-                onClick={handleDialogClose}
-                style={{ background: "#D8EEDA", color: "#157069" }}
-              >
-                Cancel
-              </Button>
-              <Button
-                id="submit-order-btn"
-                variant="contained"
-                onClick={handleSubmit}
-                sx={{
-                  background: "#14706A",
-                  color: "white",
-                  "&.Mui-disabled": {
-                    background: "#ccc",
-                    color: "#666",
-                  },
-                }}
-                disabled={orderLimit === true || warning === true}
-              >
-                Submit
-              </Button>
-                    <Button
+                <Box display="flex" justifyContent="space-between" mt={2}>
+                  <Button
+                    id="cancel-order-btn"
+                    variant="contained"
+                    onClick={handleDialogClose}
+                    style={{ background: "#D8EEDA", color: "#157069" }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    id="submit-order-btn"
+                    variant="contained"
+                    onClick={handleSubmit}
+                    sx={{
+                      background: "#14706A",
+                      color: "white",
+                      "&.Mui-disabled": {
+                        background: "#ccc",
+                        color: "#666",
+                      },
+                    }}
+                    disabled={orderLimit === true || warning === true}
+                  >
+                    Submit
+                  </Button>
+                  {/*     <Button
                 id="send-email-btn"
                 style={{
                   width: "15vw",
@@ -1282,8 +1323,8 @@ const CustomField = (props: CustomFieldProps) => {
                 onClick={() => setPage(2)}
               >
                 Next
-              </Button>
-            </Box>
+              </Button> */}
+                </Box>
               </>
             )}
           </DialogContent>
@@ -1309,7 +1350,7 @@ const CustomField = (props: CustomFieldProps) => {
           <DialogContent
             style={{ maxWidth: "100%", overflowX: "hidden", padding: "10px" }}
           >
-            <CheckoutForm/>
+            <CheckoutForm />
           </DialogContent>
         )}
         <Dialog
@@ -1355,9 +1396,7 @@ const CustomField = (props: CustomFieldProps) => {
               >
                 Send
               </Button>
-        
             </Box>
-            
           </DialogContent>
         </Dialog>
       </Dialog>
