@@ -52,6 +52,8 @@ const CustomField = (props: CustomFieldProps) => {
   const [productList, setProductList] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
   const [selectedParentProduct, setSelectedParentProduct] = useState("");
+  const [productLogo, setProductLogo] = useState(null);
+  const [productGraphic, setProductGraphic] = useState(null);
   const [orderProducts, setOrderProducts] = useState([
     { product: "", price: 0, qty: 0, discount: 0, amount: 0 },
   ]);
@@ -303,6 +305,32 @@ const CustomField = (props: CustomFieldProps) => {
 
           const payorArray = await Promise.all(payorPromises);
           setPayors(payorArray);
+
+          const currentProductKey = response.product ? response.product.___PRD
+          : response.product2?.___PRD;
+
+          if(currentProductKey) {
+            const productKeyObj = {
+              ProductKey: currentProductKey
+            }
+          
+
+          await five.executeFunction("getProductLogo", productKeyObj, null, null, null, (logoResult) => {
+            try {
+                const logoResponse = JSON.parse(logoResult.serverResponse.results);
+                console.log("Logging Logo Response", logoResponse);
+                // 4. Set the new state
+                const logo = logoResponse.logo?.response
+                const graphic = logoResponse.graphic?.response
+                setProductLogo(logo)
+                setProductGraphic(graphic)
+
+
+              } catch (e) {
+                console.error("Failed to parse logo response:", e);
+              }
+          })
+        }
           setLoading(false);
         }
       );
@@ -313,6 +341,7 @@ const CustomField = (props: CustomFieldProps) => {
   const handleDialogClose = () => {
     setEmail(null);
     setLoading(false);
+    setProductLogo(null)
     setComment("");
     setServiceDate("");
     setProductList([]);
@@ -420,9 +449,10 @@ const CustomField = (props: CustomFieldProps) => {
     if (field === "product" && selectedProduct) {
       const useFutureRate = isDateInNextOrFutureQuarter(serviceDate);
 
-      let price = useFutureRate
-        ? selectedProduct.FutureBillRate
-        : selectedProduct.BillRate;
+    let price =
+  useFutureRate && matchedProduct.FutureBillRate
+    ? matchedProduct.FutureBillRate
+    : matchedProduct.BillRate;
 
       if (
         useFutureRate &&
@@ -515,9 +545,10 @@ const CustomField = (props: CustomFieldProps) => {
 
       if (!matchedProduct) return op;
 
-      let price = isFuture
-        ? matchedProduct.FutureBillRate
-        : matchedProduct.BillRate;
+    let price =
+  isFuture && matchedProduct.FutureBillRate
+    ? matchedProduct.FutureBillRate
+    : matchedProduct.BillRate;
 
       if (
         useFutureRate &&
@@ -548,6 +579,7 @@ const CustomField = (props: CustomFieldProps) => {
     });
 
     setOrderProducts(updatedProducts);
+
   };
 
   const getMacValue = (state) => {
@@ -1297,7 +1329,7 @@ const CustomField = (props: CustomFieldProps) => {
                   >
                     Cancel
                   </Button>
-                  <Button
+              {/*     <Button
                     id="submit-order-btn"
                     variant="contained"
                     onClick={handleSubmit}
@@ -1312,18 +1344,19 @@ const CustomField = (props: CustomFieldProps) => {
                     disabled={orderLimit === true || warning === true}
                   >
                     Submit
-                  </Button>
-                  {/*     <Button
-                id="send-email-btn"
-                style={{
-                  width: "15vw",
-                  backgroundColor: "#1d343d",
-                  color: "white",
-                }}
-                onClick={() => setPage(2)}
-              >
-                Next
-              </Button> */}
+                  </Button> */}
+                  <Button
+  id="next-to-checkout-btn"
+  variant="contained"
+  onClick={() => setPage(2)}
+  sx={{
+    background: "#14706A",
+    color: "white",
+    "&:hover": { background: "#0F5E50" },
+  }}
+>
+  Next
+</Button>
                 </Box>
               </>
             )}
@@ -1350,7 +1383,27 @@ const CustomField = (props: CustomFieldProps) => {
           <DialogContent
             style={{ maxWidth: "100%", overflowX: "hidden", padding: "10px" }}
           >
-            <CheckoutForm />
+            <CheckoutForm
+                ivr={data?.ivr}
+                practitioner={data?.practitioner}
+                patient={data?.patient}
+                serviceDate={serviceDate || data?.ivr?.Date}
+                logo={productLogo}
+                graphic={productGraphic}
+                address={fullAddress}
+                orderProducts={orderProducts}
+                account={data?.account}
+                selectedProduct={
+                  selectedParentProduct === "product"
+                    ? data?.product
+                    : data?.product2
+                }
+                productList={productList}
+                onSubmit={handleSubmit}
+                onBack={() => setPage(0)}
+                submitting={submitting}
+          />
+
           </DialogContent>
         )}
         <Dialog
