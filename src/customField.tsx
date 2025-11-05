@@ -113,8 +113,7 @@ const CustomField = (props: CustomFieldProps) => {
     }
   }, [data, selectedParentProduct]);
 
-  // --- END: New useEffect ---
-  const handleSubmit = async () => {
+  const validateBeforeNext = () => {
     const servicedate = new Date(serviceDate || data?.ivr?.Date);
     const today = new Date();
 
@@ -137,6 +136,36 @@ const CustomField = (props: CustomFieldProps) => {
       five.message("Item quantity cannot be 0.");
       return;
     }
+
+    return true;
+  };
+
+  // --- END: New useEffect ---
+  const handleSubmit = async () => {
+    /*
+    const servicedate = new Date(serviceDate || data?.ivr?.Date);
+    const today = new Date();
+
+    if (servicedate <= today) {
+      five.message(
+        "Date of Service cannot be earlier than or equal to today's date."
+      );
+      return;
+    }
+
+    if (
+      orderProducts.length === 0 ||
+      orderProducts.some((item) => !item.product || item.product.trim() === "")
+    ) {
+      five.message("Please add a product before placing an order.");
+      return;
+    }
+
+    if (orderProducts.some((item) => item.qty <= 0)) {
+      five.message("Item quantity cannot be 0.");
+      return;
+    }
+    */
 
     const order = {
       ACT: data.account.___ACT,
@@ -1345,7 +1374,8 @@ const CustomField = (props: CustomFieldProps) => {
                   <Button
                       id="next-to-checkout-btn"
                       variant="contained"
-                      onClick={() => setPage(2)}
+                      // onClick={() => setPage(2)}
+                      onClick={() => { if (validateBeforeNext()) setPage(2); }}
                       sx={{
                         background: "#14706A",
                         color: "white",

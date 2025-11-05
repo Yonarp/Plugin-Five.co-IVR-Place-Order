@@ -489,36 +489,42 @@ export default function CheckoutForm({
         {showShippingOptions && selectedShippingOption && (
           <Box style={{ marginBottom: "24px" }}>
             <FormGroup>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={
-                      selectedShippingOption ===
-                      "Ground Freight (1-7 Days) $30/BX"
-                    }
-                    disabled
-                  />
-                }
-                label="Ground Freight (1-7 Days) – $30 per 5-pack"
-              />
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={selectedShippingOption === "2-Day Air - $70/BX"}
-                    disabled
-                  />
-                }
-                label="2-Day Air – $70 per 5-pack"
-              />
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={selectedShippingOption === "Bill 3rd Party"}
-                    disabled
-                  />
-                }
-                label="Bill 3rd Party - submit carrier & account number"
-              />
+              {selectedShippingOption === "Ground Freight (1-7 Days) $30/BX" && (
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={
+                        selectedShippingOption ===
+                        "Ground Freight (1-7 Days) $30/BX"
+                      }
+                      disabled
+                    />
+                  }
+                  label="Ground Freight (1-7 Days) – $30 per 5-pack"
+                />
+              )}
+              {selectedShippingOption === "2-Day Air - $70/BX" && (
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={selectedShippingOption === "2-Day Air - $70/BX"}
+                      disabled
+                    />
+                  }
+                  label="2-Day Air – $70 per 5-pack"
+                />
+              )}
+              {selectedShippingOption === "Bill 3rd Party" && (
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={selectedShippingOption === "Bill 3rd Party"}
+                      disabled
+                    />
+                  }
+                  label="Bill 3rd Party - submit carrier & account number"
+                />
+              )}
             </FormGroup>
 
             {/* Show third party details if selected */}
