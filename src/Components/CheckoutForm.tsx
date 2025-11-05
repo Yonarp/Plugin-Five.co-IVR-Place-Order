@@ -9,6 +9,10 @@ import {
   TableRow,
   Typography,
   Container,
+  Checkbox,
+  FormControlLabel,
+  FormGroup,
+  Box,
 } from "@mui/material";
 import React, { useEffect } from "react";
 
@@ -22,90 +26,122 @@ export default function CheckoutForm({
   address,
   orderProducts,
   account,
-  selectedProduct, // This should be passed from parent (either data.product or data.product2)
-  productList, // Pass the product list to get full product details
-  onSubmit, // Submit handler from parent
-  onBack, // Back navigation handler
-  submitting, // Loading state for submit
+  selectedProduct,
+  productList,
+  onSubmit,
+  onBack,
+  submitting,
+  // Add these new props
+  showShippingOptions = false,
+  selectedShippingOption = "",
+  thirdPartyCarrier = "",
+  thirdPartyAccount = "",
 }) {
   const fmtMoney = (n) => (n || n === 0 ? `$${Number(n).toFixed(2)}` : "");
 
+  // Format date to US standard (MM/DD/YYYY)
+  const formatDateUS = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${month}/${day}/${year}`;
+  };
+
   // Get the brand name and hex code from the selected product
   const brandName = selectedProduct?.Brand || "AmnioAMP-MP";
-  const themeColor = "#" + selectedProduct?.HexCode || "#1BA3C6";
+  const theme = selectedProduct?.HexCode || "009689";
+  const themeColor = "#" + theme;
 
   useEffect(() => {
-    console.log("Logging Graphic from CheckoutPage ---> ", themeColor, selectedProduct)
-  }, [])
+    console.log("Checkout Form Logging Data", selectedProduct);
+  }, []);
+
   // Format the brand name for display (replace underscores with spaces, etc.)
   const displayBrandName = brandName.replace(/_/g, " ").replace(/ACA/g, "ACA");
 
+  // Label component for consistency
+  const FieldLabel = ({ children }) => (
+    <Typography
+      variant="body2"
+      style={{
+        fontSize: "13px",
+        fontWeight: "500",
+        marginBottom: "4px",
+        color: "#374151",
+      }}
+    >
+      {children}
+    </Typography>
+  );
+
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#ffffff" }}>
-     <div
-  style={{
-    position: "relative",
-    width: "100%",
-    height: "180px",
-    overflow: "hidden",
-    backgroundColor: "white", // fallback background
-  }}
->
-  {/* Left side: Brand color with logo */}
-  <div
-    style={{
-      position: "absolute",
-      left: 0,
-      top: 0,
-      width: "60%",
-      height: "100%",
-      backgroundColor: themeColor,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "start",
-      clipPath: "polygon(0px 0px, 40% 0%, 100% 100%, 0px 100%)",
-      zIndex: 2,
-    }}
-  >
-    {logo && (
-      <img
-        src={`data:image/png;base64,${logo}`}
-        alt="Brand Logo"
+      <div
         style={{
-          maxHeight: "100px",
-          maxWidth: "70%",
-          objectFit: "contain",
-          marginLeft: "50px"
-        }}
-      />
-    )}
-  </div>
-  
-  {/* Right side: Graphic */}
-  <div
-    style={{
-      position: "absolute",
-      right: 0,
-      top: 0,
-      width: "115%",
-      height: "100%",
-      clipPath: "polygon(15% 0, 100% 0, 100% 100%, 0 100%)",
-      zIndex: 1,
-    }}
-  >
-    {graphic && (
-      <img
-        src={`data:image/png;base64,${graphic}`}
-        alt="Product Graphic"
-        style={{
+          position: "relative",
           width: "100%",
-          height: "100%",
-          objectFit: "cover",
+          height: "180px",
+          overflow: "hidden",
+          backgroundColor: "white",
         }}
-      />
-    )}
-  </div>
-</div>
+      >
+        {/* Left side: Brand color with logo */}
+        <div
+          style={{
+            position: "absolute",
+            left: 0,
+            top: 0,
+            width: "60%",
+            height: "100%",
+            backgroundColor: themeColor,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "start",
+            clipPath: "polygon(0px 0px, 40% 0%, 100% 100%, 0px 100%)",
+            zIndex: 2,
+          }}
+        >
+          {logo && (
+            <img
+              src={`data:image/png;base64,${logo}`}
+              alt="Brand Logo"
+              style={{
+                maxHeight: "100px",
+                maxWidth: "70%",
+                objectFit: "contain",
+                marginLeft: "50px",
+              }}
+            />
+          )}
+        </div>
+
+        {/* Right side: Graphic */}
+        <div
+          style={{
+            position: "absolute",
+            right: 0,
+            top: 0,
+            width: "115%",
+            height: "100%",
+            clipPath: "polygon(15% 0, 100% 0, 100% 100%, 0 100%)",
+            zIndex: 1,
+          }}
+        >
+          {graphic && (
+            <img
+              src={`data:image/png;base64,${graphic}`}
+              alt="Product Graphic"
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+              }}
+            />
+          )}
+        </div>
+      </div>
 
       {/* Main Content */}
       <Container
@@ -133,7 +169,7 @@ export default function CheckoutForm({
           </Typography>
         </div>
 
-        {/* Form Fields */}
+        {/* Form Fields - All Read Only with Labels */}
         <div style={{ marginBottom: "40px" }}>
           {/* Row 1 */}
           <div
@@ -144,35 +180,43 @@ export default function CheckoutForm({
               marginBottom: "12px",
             }}
           >
-            <TextField
-              placeholder="Requesting Provider"
-              value={practitioner?.Name || practitioner?.FullName || ""}
-              variant="filled"
-              InputProps={{
-                disableUnderline: true,
-                style: {
-                  backgroundColor: "#EEF2F5",
-                  height: "42px",
-                  borderRadius: "0",
-                },
-              }}
-              inputProps={{ style: { padding: "12px" } }}
-            />
+            <div>
+              <FieldLabel>Requesting Provider</FieldLabel>
+              <TextField
+                value={practitioner?.NameFull || practitioner?.NameFirst + practitioner?.NameLast || ""}
+                variant="filled"
+                fullWidth
+                InputProps={{
+                  readOnly: true,
+                  disableUnderline: true,
+                  style: {
+                    backgroundColor: "#EEF2F5",
+                    height: "42px",
+                    borderRadius: "0",
+                  },
+                }}
+                inputProps={{ style: { padding: "12px" } }}
+              />
+            </div>
 
-            <TextField
-              placeholder="Provider Phone"
-              value={account?.Phone || account?.MainPhone || ""}
-              variant="filled"
-              InputProps={{
-                disableUnderline: true,
-                style: {
-                  backgroundColor: "#EEF2F5",
-                  height: "42px",
-                  borderRadius: "0",
-                },
-              }}
-              inputProps={{ style: { padding: "12px" } }}
-            />
+            <div>
+              <FieldLabel>Provider Phone</FieldLabel>
+              <TextField
+                value={account?.Phone || account?.MainPhone || ""}
+                variant="filled"
+                fullWidth
+                InputProps={{
+                  readOnly: true,
+                  disableUnderline: true,
+                  style: {
+                    backgroundColor: "#EEF2F5",
+                    height: "42px",
+                    borderRadius: "0",
+                  },
+                }}
+                inputProps={{ style: { padding: "12px" } }}
+              />
+            </div>
           </div>
           {/* Row 2 */}
           <div
@@ -183,34 +227,42 @@ export default function CheckoutForm({
               marginBottom: "12px",
             }}
           >
-            <TextField
-              placeholder="Email"
-              value={practitioner?.Email || account?.Email || ""}
-              variant="filled"
-              InputProps={{
-                disableUnderline: true,
-                style: {
-                  backgroundColor: "#EEF2F5",
-                  height: "42px",
-                  borderRadius: "0",
-                },
-              }}
-              inputProps={{ style: { padding: "12px" } }}
-            />
-            <TextField
-              placeholder="Order Date"
-              value={new Date().toLocaleDateString()}
-              variant="filled"
-              InputProps={{
-                disableUnderline: true,
-                style: {
-                  backgroundColor: "#EEF2F5",
-                  height: "42px",
-                  borderRadius: "0",
-                },
-              }}
-              inputProps={{ style: { padding: "12px" } }}
-            />
+            <div>
+              <FieldLabel>Email</FieldLabel>
+              <TextField
+                value={practitioner?.Email || account?.Email || ""}
+                variant="filled"
+                fullWidth
+                InputProps={{
+                  readOnly: true,
+                  disableUnderline: true,
+                  style: {
+                    backgroundColor: "#EEF2F5",
+                    height: "42px",
+                    borderRadius: "0",
+                  },
+                }}
+                inputProps={{ style: { padding: "12px" } }}
+              />
+            </div>
+            <div>
+              <FieldLabel>Order Date</FieldLabel>
+              <TextField
+                value={formatDateUS(new Date().toISOString())}
+                variant="filled"
+                fullWidth
+                InputProps={{
+                  readOnly: true,
+                  disableUnderline: true,
+                  style: {
+                    backgroundColor: "#EEF2F5",
+                    height: "42px",
+                    borderRadius: "0",
+                  },
+                }}
+                inputProps={{ style: { padding: "12px" } }}
+              />
+            </div>
           </div>
           {/* Row 3 */}
           <div
@@ -221,42 +273,48 @@ export default function CheckoutForm({
               marginBottom: "12px",
             }}
           >
-            
-            <TextField
-              placeholder="Patient Name"
-              value={patient?.Name || ivr?.Patient || ""}
-              variant="filled"
-              InputProps={{
-                disableUnderline: true,
-                style: {
-                  backgroundColor: "#EEF2F5",
-                  height: "42px",
-                  borderRadius: "0",
-                },
-              }}
-              inputProps={{ style: { padding: "12px" } }}
-            />
+            <div>
+              <FieldLabel>Patient Name</FieldLabel>
+              <TextField
+                value={patient?.Name || ivr?.Patient || ""}
+                variant="filled"
+                fullWidth
+                InputProps={{
+                  readOnly: true,
+                  disableUnderline: true,
+                  style: {
+                    backgroundColor: "#EEF2F5",
+                    height: "42px",
+                    borderRadius: "0",
+                  },
+                }}
+                inputProps={{ style: { padding: "12px" } }}
+              />
+            </div>
 
-            <TextField
-              placeholder="Date of Service"
-              value={serviceDate || ivr?.Date || ""}
-              variant="filled"
-              InputProps={{
-                disableUnderline: true,
-                style: {
-                  backgroundColor: "#EEF2F5",
-                  height: "42px",
-                  borderRadius: "0",
-                },
-              }}
-              inputProps={{ style: { padding: "12px" } }}
-            />
-
+            <div>
+              <FieldLabel>Date of Service</FieldLabel>
+              <TextField
+                value={formatDateUS(serviceDate || ivr?.Date)}
+                variant="filled"
+                fullWidth
+                InputProps={{
+                  readOnly: true,
+                  disableUnderline: true,
+                  style: {
+                    backgroundColor: "#EEF2F5",
+                    height: "42px",
+                    borderRadius: "0",
+                  },
+                }}
+                inputProps={{ style: { padding: "12px" } }}
+              />
+            </div>
           </div>
           {/* Row 4 - Full Width */}
           <div style={{ marginBottom: "12px" }}>
+            <FieldLabel>Shipping Address</FieldLabel>
             <TextField
-              placeholder="Shipping Address"
               value={
                 address
                   ? `${address.AddressName ? address.AddressName + " — " : ""}${
@@ -274,6 +332,7 @@ export default function CheckoutForm({
               variant="filled"
               fullWidth
               InputProps={{
+                readOnly: true,
                 disableUnderline: true,
                 style: {
                   backgroundColor: "#EEF2F5",
@@ -284,8 +343,7 @@ export default function CheckoutForm({
               inputProps={{ style: { padding: "12px" } }}
             />
           </div>
-          <div style={{ height: "42px" }}></div>{" "}
-          {/* Empty space for second line */}
+          <div style={{ height: "42px" }}></div>
         </div>
 
         {/* Ordering Information Section */}
@@ -324,17 +382,19 @@ export default function CheckoutForm({
                   >
                     Description
                   </TableCell>
-                  <TableCell
-                    style={{
-                      color: "#ffffff",
-                      padding: "12px 16px",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.05em",
-                      borderBottom: "none",
-                    }}
-                  >
-                    Invoice Price
-                  </TableCell>
+                  {!showShippingOptions && (
+                    <TableCell
+                      style={{
+                        color: "#ffffff",
+                        padding: "12px 16px",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                        borderBottom: "none",
+                      }}
+                    >
+                      Invoice Price
+                    </TableCell>
+                  )}
                   <TableCell
                     style={{
                       color: "#ffffff",
@@ -351,7 +411,6 @@ export default function CheckoutForm({
               <TableBody>
                 {Array.isArray(orderProducts) && orderProducts.length > 0 ? (
                   orderProducts.map((item, idx) => {
-                    // Find the full product details from productList if available
                     const fullProduct = productList?.find(
                       (p) => p.___PRD === item.product
                     );
@@ -385,14 +444,16 @@ export default function CheckoutForm({
                         >
                           {description}
                         </TableCell>
-                        <TableCell
-                          style={{
-                            padding: "12px 16px",
-                            borderBottom: "1px solid #e5e7eb",
-                          }}
-                        >
-                          {fmtMoney(item.price)}
-                        </TableCell>
+                        {!showShippingOptions && (
+                          <TableCell
+                            style={{
+                              padding: "12px 16px",
+                              borderBottom: "1px solid #e5e7eb",
+                            }}
+                          >
+                            {fmtMoney(item.price)}
+                          </TableCell>
+                        )}
                         <TableCell
                           style={{
                             padding: "12px 16px",
@@ -413,7 +474,7 @@ export default function CheckoutForm({
                         textAlign: "center",
                         borderBottom: "1px solid #e5e7eb",
                       }}
-                      colSpan={4}
+                      colSpan={showShippingOptions ? 3 : 4}
                     >
                       {/* Keep UI same: empty state is just an empty table; no extra messaging */}
                     </TableCell>
@@ -423,6 +484,71 @@ export default function CheckoutForm({
             </Table>
           </TableContainer>
         </div>
+
+        {/* Shipping Options - Only for ActiGraft (Read-only display) */}
+        {showShippingOptions && selectedShippingOption && (
+          <Box style={{ marginBottom: "24px" }}>
+            <FormGroup>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={
+                      selectedShippingOption ===
+                      "Ground Freight (1-7 Days) $30/BX"
+                    }
+                    disabled
+                  />
+                }
+                label="Ground Freight (1-7 Days) – $30 per 5-pack"
+              />
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={selectedShippingOption === "2-Day Air - $70/BX"}
+                    disabled
+                  />
+                }
+                label="2-Day Air – $70 per 5-pack"
+              />
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={selectedShippingOption === "Bill 3rd Party"}
+                    disabled
+                  />
+                }
+                label="Bill 3rd Party - submit carrier & account number"
+              />
+            </FormGroup>
+
+            {/* Show third party details if selected */}
+            {selectedShippingOption === "Bill 3rd Party" &&
+              (thirdPartyCarrier || thirdPartyAccount) && (
+                <Box
+                  display="flex"
+                  gap={2}
+                  mt={2}
+                  ml={4}
+                  style={{
+                    padding: "12px",
+                    backgroundColor: "#EEF2F5",
+                    borderRadius: "4px",
+                  }}
+                >
+                  {thirdPartyCarrier && (
+                    <Typography variant="body2">
+                      <strong>Carrier:</strong> {thirdPartyCarrier}
+                    </Typography>
+                  )}
+                  {thirdPartyAccount && (
+                    <Typography variant="body2">
+                      <strong>Account Number:</strong> {thirdPartyAccount}
+                    </Typography>
+                  )}
+                </Box>
+              )}
+          </Box>
+        )}
 
         {/* Email Instruction */}
         <div
@@ -438,6 +564,7 @@ export default function CheckoutForm({
               CustomerService@LegacyMedicalConsultants.com
             </span>
           </Typography>
+          
         </div>
 
         {/* Submit Button */}

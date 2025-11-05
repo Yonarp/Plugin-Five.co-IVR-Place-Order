@@ -233,10 +233,7 @@ const CustomField = (props: CustomFieldProps) => {
         null,
         async (result) => {
           const response = JSON.parse(result.serverResponse.results);
-          console.log(
-            "Logging Response From Products of get IVR Details -->",
-            response
-          );
+       
           if (response.product) {
             setSelectedParentProduct("product");
             setProductList(filterProductList(response.productList));
@@ -318,7 +315,7 @@ const CustomField = (props: CustomFieldProps) => {
           await five.executeFunction("getProductLogo", productKeyObj, null, null, null, (logoResult) => {
             try {
                 const logoResponse = JSON.parse(logoResult.serverResponse.results);
-                console.log("Logging Logo Response", logoResponse);
+             
                 // 4. Set the new state
                 const logo = logoResponse.logo?.response
                 const graphic = logoResponse.graphic?.response
@@ -450,9 +447,9 @@ const CustomField = (props: CustomFieldProps) => {
       const useFutureRate = isDateInNextOrFutureQuarter(serviceDate);
 
     let price =
-  useFutureRate && matchedProduct.FutureBillRate
-    ? matchedProduct.FutureBillRate
-    : matchedProduct.BillRate;
+  useFutureRate && selectedProduct.FutureBillRate
+    ? selectedProduct.FutureBillRate
+    : selectedProduct.BillRate;
 
       if (
         useFutureRate &&
@@ -1346,17 +1343,17 @@ const CustomField = (props: CustomFieldProps) => {
                     Submit
                   </Button> */}
                   <Button
-  id="next-to-checkout-btn"
-  variant="contained"
-  onClick={() => setPage(2)}
-  sx={{
-    background: "#14706A",
-    color: "white",
-    "&:hover": { background: "#0F5E50" },
-  }}
->
-  Next
-</Button>
+                      id="next-to-checkout-btn"
+                      variant="contained"
+                      onClick={() => setPage(2)}
+                      sx={{
+                        background: "#14706A",
+                        color: "white",
+                        "&:hover": { background: "#0F5E50" },
+                      }}
+                    >
+                      Next
+                    </Button>
                 </Box>
               </>
             )}
@@ -1380,32 +1377,38 @@ const CustomField = (props: CustomFieldProps) => {
         )}
 
         {page === 2 && (
-          <DialogContent
-            style={{ maxWidth: "100%", overflowX: "hidden", padding: "10px" }}
-          >
-            <CheckoutForm
-                ivr={data?.ivr}
-                practitioner={data?.practitioner}
-                patient={data?.patient}
-                serviceDate={serviceDate || data?.ivr?.Date}
-                logo={productLogo}
-                graphic={productGraphic}
-                address={fullAddress}
-                orderProducts={orderProducts}
-                account={data?.account}
-                selectedProduct={
-                  selectedParentProduct === "product"
-                    ? data?.product
-                    : data?.product2
-                }
-                productList={productList}
-                onSubmit={handleSubmit}
-                onBack={() => setPage(0)}
-                submitting={submitting}
-          />
-
-          </DialogContent>
-        )}
+  <DialogContent
+    style={{ maxWidth: "100%", overflowX: "hidden", padding: "10px" }}
+  >
+    <CheckoutForm
+      ivr={data?.ivr}
+      practitioner={data?.practitioner}
+      patient={data?.patient}
+      serviceDate={serviceDate || data?.ivr?.Date}
+      logo={productLogo}
+      graphic={productGraphic}
+      address={fullAddress}
+      orderProducts={orderProducts}
+      account={data?.account}
+      selectedProduct={
+        selectedParentProduct === "product"
+          ? data?.product
+          : data?.product2
+      }
+      productList={productList}
+      onSubmit={handleSubmit}
+      onBack={() => setPage(0)}
+      submitting={submitting}
+      showShippingOptions={showShippingOptions}
+      selectedShippingOption={selectedShippingOption}
+      onShippingChange={handleShippingChange}
+      thirdPartyCarrier={thirdPartyCarrier}
+      onThirdPartyCarrierChange={setThirdPartyCarrier}
+      thirdPartyAccount={thirdPartyAccount}
+      onThirdPartyAccountChange={setThirdPartyAccount}
+    />
+  </DialogContent>
+)}
         <Dialog
           id="email-dialog"
           open={emailDialogOpen}

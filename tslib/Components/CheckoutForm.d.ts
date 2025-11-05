@@ -1,9 +1,5 @@
 /// <reference types="react" />
-export default function CheckoutForm({ ivr, practitioner, patient, logo, graphic, serviceDate, address, orderProducts, account, selectedProduct, // This should be passed from parent (either data.product or data.product2)
-productList, // Pass the product list to get full product details
-onSubmit, // Submit handler from parent
-onBack, // Back navigation handler
-submitting, }: {
+export default function CheckoutForm({ ivr, practitioner, patient, logo, graphic, serviceDate, address, orderProducts, account, selectedProduct, productList, onSubmit, onBack, submitting, showShippingOptions, selectedShippingOption, thirdPartyCarrier, thirdPartyAccount, }: {
     ivr: any;
     practitioner: any;
     patient: any;
@@ -18,4 +14,8 @@ submitting, }: {
     onSubmit: any;
     onBack: any;
     submitting: any;
+    showShippingOptions?: boolean;
+    selectedShippingOption?: string;
+    thirdPartyCarrier?: string;
+    thirdPartyAccount?: string;
 }): JSX.Element;

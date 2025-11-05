@@ -80,7 +80,7 @@ const Summary = forwardRef((props, ref) => {
       });
   };
 
-  console.log("Logging Patients from place order", patient)
+
 
   /*   const convertImageToBase64 = async () => {
     try {
